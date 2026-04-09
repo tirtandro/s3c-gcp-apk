@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sustainable Education Hub - S3C SMAN 2 Wates</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --forest: #1a5c38; --leaf: #2d8653; --sage: #4caf78;
+            --mint: #a8e6bc; --foam: #e8f5ee; --earth: #8b6914;
+            --sand: #f5e6d3; --cream: #fdfaf6; --mist: #f0f4f1;
+            --charcoal: #1e2a1f; --white: #ffffff;
+            --shadow: 0 4px 20px rgba(26,92,56,0.12);
+            --radius: 16px;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--mist); color:var(--charcoal); min-height:100vh; }
+
+        /* ── TOP BAR ── */
+        .topbar {
+            background:var(--white); border-bottom:1px solid rgba(26,92,56,0.1);
+            padding:0 16px; height:64px; display:flex; align-items:center;
+            justify-content:space-between; position:sticky; top:0; z-index:100;
+            box-shadow:0 2px 12px rgba(26,92,56,0.08);
+        }
+        .topbar-brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+        .topbar-brand img { width:40px; height:40px; object-fit:contain; }
+        .topbar-brand-text { display:flex; flex-direction:column; }
+        .topbar-school { font-size:9px; font-weight:800; color:#1a3a6e; letter-spacing:.5px; text-transform:uppercase; }
+        .topbar-app { font-family:'Fraunces',serif; font-size:14px; font-weight:700; color:var(--forest); }
+        .topbar-app span { color:var(--sage); }
+        .topbar-actions { display:flex; gap:8px; align-items:center; }
+        .btn-login-small {
+            padding:8px 16px; background:var(--forest); color:white;
+            border-radius:10px; font-weight:700; font-size:13px;
+            text-decoration:none; display:flex; align-items:center; gap:6px;
+        }
+        .btn-back {
+            padding:8px 14px; background:var(--foam); color:var(--forest);
+            border-radius:10px; font-weight:600; font-size:13px;
+            text-decoration:none; display:flex; align-items:center; gap:6px;
+        }
+
+        /* ── HERO ── */
+        .hero {
+            background:linear-gradient(135deg,#0d2818 0%,#1a5c38 50%,#2d8653 100%);
+            padding:36px 16px 40px; color:white; position:relative; overflow:hidden;
+        }
+        .hero::before { content:''; position:absolute; top:-60px; right:-60px; width:220px; height:220px; background:rgba(76,175,120,0.12); border-radius:50%; }
+        .hero::after { content:''; position:absolute; bottom:-40px; left:-40px; width:150px; height:150px; background:rgba(168,230,188,0.07); border-radius:50%; }
+        .hero-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.12); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.2); padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600; margin-bottom:14px; }
+        .hero-title { font-family:'Fraunces',serif; font-size:30px; font-weight:900; line-height:1.15; margin-bottom:8px; }
+        .hero-title .accent { color:#a8e6bc; font-style:italic; }
+        .hero-desc { font-size:14px; opacity:.85; line-height:1.6; max-width:480px; }
+        .hero-stats { display:flex; gap:16px; margin-top:20px; flex-wrap:wrap; }
+        .hero-stat { background:rgba(255,255,255,0.12); backdrop-filter:blur(8px); border-radius:12px; padding:10px 16px; text-align:center; }
+        .hero-stat-val { font-weight:800; font-size:22px; }
+        .hero-stat-lbl { font-size:11px; opacity:.75; margin-top:2px; }
+
+        /* ── SEARCH & FILTER ── */
+        .search-bar { padding:16px; background:white; border-bottom:1px solid #eee; position:sticky; top:64px; z-index:90; }
+        .search-row { display:flex; gap:8px; margin-bottom:12px; }
+        .search-input { flex:1; padding:11px 16px; border-radius:12px; border:2px solid #e8ede9; font-family:inherit; font-size:14px; }
+        .search-input:focus { outline:none; border-color:var(--leaf); }
+        .search-btn { padding:11px 16px; background:var(--forest); color:white; border:none; border-radius:12px; cursor:pointer; font-size:16px; }
+        .cat-chips { display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; }
+        .cat-chip { flex-shrink:0; padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600; text-decoration:none; border:2px solid transparent; transition:all .2s; }
+        .cat-chip.active { background:var(--forest); color:white; }
+        .cat-chip:not(.active) { background:var(--foam); color:var(--forest); border-color:var(--mint); }
+
+        /* ── VIDEO GRID ── */
+        .container { padding:16px; max-width:960px; margin:0 auto; }
+        .section-title { font-family:'Fraunces',serif; font-size:20px; font-weight:700; color:var(--forest); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+        .video-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        @media(min-width:640px) { .video-grid { grid-template-columns:repeat(3,1fr); } }
+        @media(min-width:900px) { .video-grid { grid-template-columns:repeat(4,1fr); } }
+
+        .video-card {
+            background:white; border-radius:var(--radius); overflow:hidden;
+            box-shadow:var(--shadow); transition:transform .2s, box-shadow .2s;
+            text-decoration:none; display:block;
+        }
+        .video-card:hover { transform:translateY(-4px); box-shadow:0 8px 32px rgba(26,92,56,0.18); }
+        .video-thumb {
+            position:relative; padding-top:56.25%; background:#0d2818;
+            overflow:hidden;
+        }
+        .video-thumb iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:none; pointer-events:none; }
+        .video-thumb-overlay {
+            position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+            background:rgba(0,0,0,0.2); transition:background .2s;
+        }
+        .video-card:hover .video-thumb-overlay { background:rgba(0,0,0,0.05); }
+        .play-btn {
+            width:44px; height:44px; background:rgba(255,255,255,0.92);
+            border-radius:50%; display:flex; align-items:center; justify-content:center;
+            font-size:18px; color:var(--forest); box-shadow:0 2px 12px rgba(0,0,0,0.3);
+            transition:transform .2s;
+        }
+        .video-card:hover .play-btn { transform:scale(1.12); }
+        .video-info { padding:12px; }
+        .video-cat { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; margin-bottom:6px; }
+        .cat-lingkungan { background:#e8f5ee; color:var(--forest); }
+        .cat-gizi { background:#e8f4fd; color:#1a56c4; }
+        .cat-umum { background:var(--sand); color:var(--earth); }
+        .cat-zerowaste { background:#fff0f8; color:#b04090; }
+        .cat-pertanian { background:#f0fff0; color:#2d6a2d; }
+        .video-title { font-weight:700; font-size:13px; color:var(--charcoal); line-height:1.4; margin-bottom:4px; }
+        .video-meta { font-size:11px; color:#999; }
+
+        /* ── EMPTY ── */
+        .empty-state { text-align:center; padding:60px 20px; color:#aaa; }
+        .empty-state i { font-size:56px; margin-bottom:16px; color:var(--mint); }
+        .empty-state p { font-size:15px; }
+
+        /* ── FOOTER ── */
+        .hub-footer {
+            background:var(--forest); color:white; text-align:center;
+            padding:24px 16px; margin-top:40px; font-size:13px; opacity:.9;
+        }
+        .hub-footer a { color:var(--mint); text-decoration:none; font-weight:700; }
+
+        @media(min-width:640px) {
+            .hero { padding:48px 32px 56px; }
+            .hero-title { font-size:40px; }
+            .container { padding:24px 32px; }
+            .search-bar { padding:16px 32px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+    <a href="{{ url_for('index') }}" class="topbar-brand" title="Beranda S3C">
+        <img src="{{ url_for('static', filename='img/logo_sekolah.png') }}" alt="Logo">
+        <div class="topbar-brand-text">
+            <div class="topbar-school">SMA Negeri 2 Wates</div>
+            <div class="topbar-app">S3<span>C</span> · Edu Hub</div>
+        </div>
+    </a>
+    <div class="topbar-actions">
+        <a href="{{ url_for('marketplace') }}" class="btn-back">
+            <i class="fas fa-store"></i> <span style="display:none;" class="hide-xs">Marketplace</span>
+        </a>
+        {% if session.user_id %}
+        <a href="{{ url_for('dashboard') }}" class="btn-login-small">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+        {% else %}
+        <a href="{{ url_for('login') }}" class="btn-login-small">
+            <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+    <div style="position:relative;z-index:1;">
+        <div class="hero-badge">🌿 Gratis · Terbuka untuk Semua</div>
+        <h1 class="hero-title">Sustainable<br><span class="accent">Education Hub</span></h1>
+        <p class="hero-desc">Koleksi video edukasi tentang lingkungan, gizi sehat, pertanian berkelanjutan, dan zero waste — dikurasi oleh Tim S3C untuk kamu.</p>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-val">{{ videos|length }}</div>
+                <div class="hero-stat-lbl">Video Tersedia</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-val">🆓</div>
+                <div class="hero-stat-lbl">Bebas Akses</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-val">🌍</div>
+                <div class="hero-stat-lbl">Untuk Semua</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SEARCH & FILTER -->
+<div class="search-bar">
+    <form method="GET" action="{{ url_for('edu_hub') }}">
+        <div class="search-row">
+            <input type="text" name="search" value="{{ search }}" class="search-input" placeholder="🔍 Cari video edukasi...">
+            <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+        </div>
+        <div class="cat-chips">
+            {% for cat, label, emoji in [('all','Semua','🎬'),('lingkungan','Lingkungan','🌍'),('gizi','Gizi & Kesehatan','🥗'),('zerowaste','Zero Waste','♻️'),('pertanian','Pertanian','🌾'),('umum','Umum','📚')] %}
+            <a href="{{ url_for('edu_hub', category=cat, search=search) }}"
+               class="cat-chip {% if category==cat %}active{% endif %}">{{ emoji }} {{ label }}</a>
+            {% endfor %}
+        </div>
+    </form>
+</div>
+
+<!-- VIDEOS -->
+<div class="container">
+    {% if videos %}
+    <div class="section-title">
+        🎬 {% if search %}Hasil pencarian "{{ search }}"{% elif category != 'all' %}{{ category.replace('zerowaste','Zero Waste').title() }}{% else %}Semua Video{% endif %}
+        <span style="font-size:14px;color:#999;font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;">({{ videos|length }})</span>
+    </div>
+    <div class="video-grid">
+        {% for v in videos %}
+        <a href="{{ url_for('edu_hub_detail', video_id=v.id) }}" class="video-card">
+            <div class="video-thumb">
+                <iframe src="{{ v.youtube_url }}?autoplay=0&mute=1" loading="lazy"
+                    allow="accelerometer; clipboard-write; encrypted-media; gyroscope" allowfullscreen></iframe>
+                <div class="video-thumb-overlay">
+                    <div class="play-btn"><i class="fas fa-play" style="margin-left:3px;"></i></div>
+                </div>
+            </div>
+            <div class="video-info">
+                <div class="video-cat cat-{{ v.category }}">
+                    {% if v.category=='lingkungan' %}🌍 Lingkungan
+                    {% elif v.category=='gizi' %}🥗 Gizi
+                    {% elif v.category=='zerowaste' %}♻️ Zero Waste
+                    {% elif v.category=='pertanian' %}🌾 Pertanian
+                    {% else %}📚 Umum{% endif %}
+                </div>
+                <div class="video-title">{{ v.title }}</div>
+                <div class="video-meta">{{ v.created_at | strftime('%d %b %Y') }}</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-film"></i>
+        <p>{% if search %}Tidak ada video untuk "{{ search }}"{% else %}Belum ada video. Admin akan segera menambahkan konten!{% endif %}</p>
+        {% if search %}<a href="{{ url_for('edu_hub') }}" style="color:var(--forest);font-weight:700;font-size:14px;margin-top:12px;display:inline-block;">← Lihat semua video</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- FOOTER -->
+<div class="hub-footer">
+    <div style="margin-bottom:6px;">🌿 <strong>Sustainable Education Hub</strong> · S3C SMAN 2 Wates</div>
+    <div>Konten dikurasi oleh Tim S3C · <a href="{{ url_for('marketplace') }}">Marketplace</a> · <a href="{{ url_for('login') }}">Login Siswa</a></div>
+</div>
+
+<script>
+// Jinja filter strftime fallback (template filter handles this server-side)
+</script>
+</body>
+</html>

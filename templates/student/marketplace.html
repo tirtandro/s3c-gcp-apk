@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% block title %}Marketplace Hijau - S3C{% endblock %}
+{% block extra_head %}
+<style>
+.mp-card {
+    background: white; border-radius: 18px; overflow: hidden;
+    box-shadow: 0 2px 10px rgba(26,92,56,0.09);
+    cursor: pointer; transition: transform .18s, box-shadow .18s;
+}
+.mp-card:active { transform: scale(0.97); }
+.mp-card:hover  { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(26,92,56,0.15); }
+.mp-img {
+    height: 120px; overflow: hidden; background: #f0f4f1;
+    display: flex; align-items: center; justify-content: center; position: relative;
+}
+.mp-img img { width:100%; height:100%; object-fit:cover; }
+.mp-img-emoji { font-size: 44px; }
+.mp-body { padding: 11px 12px 13px; }
+.mp-cat {
+    font-size: 10px; font-weight: 700; padding: 2px 8px;
+    border-radius: 20px; background: #e8f5ee; color: #1a5c38;
+    display: inline-block; margin-bottom: 5px;
+}
+.mp-name { font-weight: 700; font-size: 13px; color: #1e2a1f; margin-bottom: 3px; line-height: 1.3; }
+.mp-desc { font-size: 11px; color: #999; margin-bottom: 8px; line-height: 1.4;
+           display: -webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.mp-footer { display: flex; justify-content: space-between; align-items: flex-end; }
+.mp-price { font-weight: 800; font-size: 15px; color: #1a5c38; }
+.mp-unit  { font-size: 10px; color: #aaa; }
+.mp-stock { font-size: 10px; color: #aaa; }
+.mp-order-btn {
+    background: #1a5c38; color: white; border: none; border-radius: 10px;
+    padding: 5px 12px; font-size: 12px; font-weight: 700; cursor: pointer;
+    font-family: inherit;
+}
+
+/* ── Detail Modal ── */
+.mp-modal-bg {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+}
+.mp-modal-bg.open { display: flex; align-items: flex-end; justify-content: center; }
+.mp-modal {
+    background: white; border-radius: 28px 28px 0 0;
+    width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto;
+    padding-bottom: 24px;
+}
+.mp-modal-img {
+    width: 100%; height: 200px; object-fit: cover; border-radius: 28px 28px 0 0;
+}
+.mp-modal-img-placeholder {
+    width:100%; height:180px; background: linear-gradient(135deg,#f5e6d3,#e8f5ee);
+    display:flex; align-items:center; justify-content:center; font-size:72px;
+    border-radius: 28px 28px 0 0;
+}
+.mp-modal-body { padding: 20px 20px 8px; }
+.mp-modal-name { font-family:'Fraunces',serif; font-size:22px; font-weight:700; color:#1e2a1f; margin-bottom:6px; }
+.mp-modal-desc { font-size:14px; color:#555; line-height:1.7; margin-bottom:16px; }
+.mp-modal-meta { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.mp-modal-meta-item { background:#f8f8f8; border-radius:10px; padding:10px 12px; }
+.mp-modal-meta-label { font-size:11px; color:#aaa; margin-bottom:2px; }
+.mp-modal-meta-val { font-size:15px; font-weight:800; color:#1a5c38; }
+.mp-modal-close {
+    width: 40px; height: 40px; border-radius: 20px; border: none;
+    background: rgba(0,0,0,0.08); color: #333; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+.mp-contact-btn {
+    display: flex; align-items: center; gap: 8px; justify-content: center;
+    padding: 14px; background: linear-gradient(135deg,#4a3728,#8b6914);
+    color: white; border-radius: 14px; font-weight: 700; font-size: 15px;
+    text-decoration: none; margin: 0 20px;
+}
+</style>
+{% endblock %}
+{% block content %}
+
+<!-- Public notice -->
+{% if not session.user_id %}
+<div style="background:linear-gradient(135deg,#1a3a6e,#3a8fd4);margin:12px 16px 0;border-radius:14px;padding:14px 16px;color:white;display:flex;align-items:center;gap:12px;">
+    <div style="font-size:28px;">🛒</div>
+    <div style="flex:1;">
+        <div style="font-weight:700;font-size:14px;">Marketplace Publik</div>
+        <div style="font-size:12px;opacity:.85;">Tamu. <a href="{{ url_for('login') }}" style="color:#a8e6bc;font-weight:700;">Login</a> untuk pemesanan langsung.</div>
+    </div>
+    <a href="{{ url_for('edu_hub') }}" style="background:rgba(255,255,255,0.15);color:white;padding:7px 12px;border-radius:10px;font-size:12px;font-weight:700;text-decoration:none;flex-shrink:0;">🎬 Edu Hub</a>
+</div>
+{% endif %}
+
+<div class="page-header">
+    <div class="page-title">♻️ Marketplace Hijau</div>
+    <div class="page-subtitle">Produk daur ulang dari sisa kantin — klik untuk detail</div>
+</div>
+
+<!-- Filter chips -->
+<div class="section" style="padding-bottom:0;">
+    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;">
+        {% for cat, label, emoji in [('all','Semua','♻️'),('kompos','Kompos','🌿'),('pupuk_cair','Pupuk Cair','💧'),('kerajinan','Kerajinan','🎨'),('lainnya','Lainnya','🎁')] %}
+        <a href="{{ url_for('marketplace', category=cat) }}"
+           style="flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;
+                  {% if category==cat %}background:#1a5c38;color:white;{% else %}background:white;color:#555;border:2px solid #e8ede9;{% endif %}">
+            {{ emoji }} {{ label }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Banner -->
+<div class="section" style="padding-bottom:0;">
+    <div style="background:linear-gradient(135deg,#4a3728,#8b6914);border-radius:20px;padding:18px 20px;color:white;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-20px;right:-20px;font-size:80px;opacity:.1;">♻️</div>
+        <div style="font-size:12px;opacity:.8;margin-bottom:4px;">Program Ekonomi Sirkular S3C</div>
+        <div style="font-family:'Fraunces',serif;font-size:17px;font-weight:700;margin-bottom:4px;">Dari Sisa Jadi Berkah 🌱</div>
+        <div style="font-size:12px;opacity:.75;">Klik produk untuk melihat detail & menghubungi Tim S3C</div>
+    </div>
+</div>
+
+<!-- Product grid -->
+<div class="section">
+    {% if items %}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        {% for item in items %}
+        <div class="mp-card" onclick="openDetail(
+            '{{ item.name|e }}',
+            '{{ (item.description or '')|e|replace("'","\\'")|replace('\n',' ') }}',
+            '{{ item.category }}',
+            {{ item.price }},
+            '{{ item.unit }}',
+            {{ item.stock }},
+            '{{ item.image_emoji }}',
+            '{% if item.image_file %}{{ item.image_file }}{% endif %}'
+        )">
+            <div class="mp-img">
+                {% if item.image_file %}
+                <img src="{{ item.image_file }}" alt="{{ item.name }}">
+                {% else %}
+                <span class="mp-img-emoji">{{ item.image_emoji }}</span>
+                {% endif %}
+                <!-- Stock badge -->
+                <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.55);color:white;border-radius:8px;padding:2px 8px;font-size:10px;font-weight:700;">
+                    Stok {{ item.stock }}
+                </div>
+            </div>
+            <div class="mp-body">
+                <div class="mp-cat">{{ item.category.replace('_',' ').title() }}</div>
+                <div class="mp-name">{{ item.name }}</div>
+                <div class="mp-desc">{{ item.description or '' }}</div>
+                <div class="mp-footer">
+                    <div>
+                        <div class="mp-price">Rp{{ "{:,.0f}".format(item.price) }}</div>
+                        <div class="mp-unit">per {{ item.unit }}</div>
+                    </div>
+                    <button class="mp-order-btn" onclick="event.stopPropagation()">Detail →</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><i class="fas fa-store"></i><p>Belum ada produk tersedia</p></div>
+    {% endif %}
+</div>
+
+<!-- ══ DETAIL MODAL ══ -->
+<div class="mp-modal-bg" id="mpModal" onclick="if(event.target===this)closeDetail()">
+    <div class="mp-modal">
+        <!-- Handle bar -->
+        <div style="padding:12px 0 0;display:flex;justify-content:center;">
+            <div style="width:44px;height:4px;background:#e0e0e0;border-radius:2px;"></div>
+        </div>
+        <!-- Image -->
+        <div id="mImgWrap"></div>
+        <!-- Body -->
+        <div class="mp-modal-body">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                <div>
+                    <div id="mCat" class="mp-cat"></div>
+                    <div id="mName" class="mp-modal-name"></div>
+                </div>
+                <button class="mp-modal-close" onclick="closeDetail()">✕</button>
+            </div>
+            <div id="mDesc" class="mp-modal-desc"></div>
+            <div class="mp-modal-meta">
+                <div class="mp-modal-meta-item">
+                    <div class="mp-modal-meta-label">Harga</div>
+                    <div class="mp-modal-meta-val" id="mPrice"></div>
+                </div>
+                <div class="mp-modal-meta-item">
+                    <div class="mp-modal-meta-label">Satuan</div>
+                    <div class="mp-modal-meta-val" id="mUnit"></div>
+                </div>
+                <div class="mp-modal-meta-item">
+                    <div class="mp-modal-meta-label">Stok tersedia</div>
+                    <div class="mp-modal-meta-val" id="mStock"></div>
+                </div>
+                <div class="mp-modal-meta-item">
+                    <div class="mp-modal-meta-label">Kategori</div>
+                    <div class="mp-modal-meta-val" style="font-size:13px;" id="mCatVal"></div>
+                </div>
+            </div>
+        </div>
+        <!-- CTA -->
+        <div style="background:#f8f8f8;border-radius:14px;margin:0 20px 16px;padding:12px 14px;">
+            <div style="font-size:12px;color:#888;margin-bottom:4px;">📞 Cara memesan:</div>
+            <div style="font-size:13px;color:#444;line-height:1.5;">Hubungi Tim S3C / Admin sekolah untuk pemesanan dan pengambilan produk di kantin.</div>
+        </div>
+        <a href="{{ url_for('education') }}" class="mp-contact-btn">
+            ♻️ Pelajari Produk Daur Ulang Kami
+        </a>
+    </div>
+</div>
+
+<script>
+function openDetail(name, desc, cat, price, unit, stock, emoji, imgUrl) {
+    const modal = document.getElementById('mpModal');
+    document.getElementById('mName').textContent = name;
+    document.getElementById('mDesc').textContent = desc || 'Produk berkualitas dari program daur ulang kantin S3C.';
+    document.getElementById('mCat').textContent = cat.replace('_',' ');
+    document.getElementById('mCatVal').textContent = cat.replace(/_/g,' ');
+    document.getElementById('mPrice').textContent = 'Rp' + Math.round(price).toLocaleString('id');
+    document.getElementById('mUnit').textContent = unit;
+    document.getElementById('mStock').textContent = stock + ' ' + unit;
+
+    // Image or emoji
+    const wrap = document.getElementById('mImgWrap');
+    if (imgUrl) {
+        wrap.innerHTML = `<img src="${imgUrl}" class="mp-modal-img" alt="${name}">`;
+    } else {
+        wrap.innerHTML = `<div class="mp-modal-img-placeholder">${emoji}</div>`;
+    }
+
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeDetail() {
+    document.getElementById('mpModal').classList.remove('open');
+    document.body.style.overflow = '';
+}
+</script>
+{% endblock %}

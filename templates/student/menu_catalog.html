@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Katalog Menu - S3C{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title">🍽️ Katalog Menu</div>
+    <div class="page-subtitle">Pilih makanan sehat & bergizi favoritmu</div>
+</div>
+
+<div class="section" style="padding-bottom:0;">
+    <form method="GET" style="display:flex;gap:8px;">
+        <input type="text" name="search" value="{{ search }}" class="form-control" placeholder="🔍 Cari menu...">
+        <button type="submit" class="btn btn-primary" style="padding:10px 16px;flex-shrink:0;"><i class="fas fa-search"></i></button>
+    </form>
+</div>
+
+<div class="section" style="padding-bottom:0;">
+    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;">
+        {% for cat, label, emoji in [('all','Semua','🍱'),('makanan','Makanan','🍚'),('minuman','Minuman','🥤'),('snack','Snack','🥨')] %}
+        <a href="{{ url_for('menu_catalog', category=cat, healthy=healthy_only, search=search) }}"
+           style="flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;
+                  {% if category == cat %}background:#1a5c38;color:white;{% else %}background:white;color:#555;border:2px solid #e8ede9;{% endif %}">
+            {{ emoji }} {{ label }}
+        </a>
+        {% endfor %}
+        <a href="{{ url_for('menu_catalog', category=category, healthy='' if healthy_only else '1', search=search) }}"
+           style="flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;
+                  {% if healthy_only %}background:#2d8653;color:white;{% else %}background:#e8f5ee;color:#1a5c38;border:2px solid #a8e6bc;{% endif %}">
+            🌿 Sehat Only
+        </a>
+    </div>
+</div>
+
+<div class="section">
+    {% if menus %}
+    <div style="font-size:13px;color:#888;margin-bottom:12px;">{{ menus|length }} menu ditemukan</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        {% for menu in menus %}
+        <div class="menu-card" onclick="showMenuDetail('{{ menu.name|e }}','{{ menu.image_emoji }}',{{ menu.price }},'{{ (menu.tenant_name or menu.tname or '')|e }}',{{ menu.calories }},{{ menu.protein }},{{ menu.carbs }},{{ menu.fat }},{{ menu.fiber }},{{ 'true' if menu.is_healthy else 'false' }},'{{ (menu.description or '')|e|replace("'","\\'")|replace('\n',' ') }}','{{ 'has_img' if menu.image_file else '' }}')"
+             data-img-src="{% if menu.image_file %}{{ menu.image_file }}{% endif %}">
+            <div class="menu-emoji" style="padding:0;overflow:hidden;">
+                {% if menu.image_file %}
+                <img src="{{ menu.image_file }}" style="width:100%;height:100%;object-fit:cover;" alt="{{ menu.name }}">
+                {% else %}
+                <span style="font-size:38px;display:flex;align-items:center;justify-content:center;height:100%;">{{ menu.image_emoji }}</span>
+                {% endif %}
+            </div>
+            <div class="menu-info">
+                {% if menu.is_healthy %}
+                <div style="display:inline-flex;align-items:center;gap:3px;background:#e8f5ee;color:#1a5c38;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;margin-bottom:4px;">🌿 SEHAT</div>
+                {% endif %}
+                <div class="menu-name">{{ menu.name }}</div>
+                <div class="menu-tenant">{{ menu.tenant_name or menu.tname }}</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+                    <div class="menu-price">Rp{{ "{:,.0f}".format(menu.price) }}</div>
+                    <div style="font-size:10px;color:#888;">{{ menu.calories|int }} kal</div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><i class="fas fa-utensils"></i><p>Tidak ada menu yang ditemukan</p></div>
+    {% endif %}
+</div>
+
+<div id="menuModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);" onclick="if(event.target===this)closeModal()">
+    <div style="position:absolute;bottom:0;left:0;right:0;background:white;border-radius:28px 28px 0 0;padding:24px;max-height:85vh;overflow-y:auto;max-width:640px;margin:0 auto;">
+        <div style="text-align:center;margin-bottom:16px;">
+            <div style="width:48px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 16px;"></div>
+            <div id="mEmoji" style="font-size:64px;margin-bottom:8px;"></div>
+            <div id="mName" style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#1e2a1f;"></div>
+            <div id="mTenant" style="font-size:12px;color:#888;margin-top:2px;"></div>
+        </div>
+        <div id="mHealthy" style="margin-bottom:12px;text-align:center;"></div>
+        <div id="mDesc" style="font-size:14px;color:#555;text-align:center;margin-bottom:16px;"></div>
+        <div style="background:#f0f4f1;border-radius:16px;padding:16px;margin-bottom:16px;">
+            <div style="font-size:13px;font-weight:700;color:#1a5c38;margin-bottom:12px;">🔬 Informasi Gizi</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="mNutrition"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:#1a5c38;" id="mPrice"></div>
+            <a href="{{ url_for('order') }}" class="btn btn-primary"><i class="fas fa-cart-plus"></i> Pesan</a>
+        </div>
+        <button onclick="closeModal()" style="width:100%;padding:12px;border:2px solid #e8ede9;border-radius:12px;background:white;font-family:inherit;font-size:14px;font-weight:600;color:#555;cursor:pointer;">Tutup</button>
+    </div>
+</div>
+
+<script>
+function showMenuDetail(name,emoji,price,tenant,cal,prot,carbs,fat,fiber,healthy,desc,hasImg) {
+    // Grab the data-img-src from the clicked card
+    const cards = document.querySelectorAll('[data-img-src]');
+    let imgSrc = '';
+    cards.forEach(c => { if(c.querySelector && c.querySelector('.menu-emoji img')) {
+        const nm = c.querySelector('.menu-name');
+        if(nm && nm.textContent.trim() === name) imgSrc = c.getAttribute('data-img-src');
+    }});
+    // Modal image area
+    const emojiEl = document.getElementById('mEmoji');
+    if(imgSrc) {
+        emojiEl.innerHTML = `<img src="${imgSrc}" style="width:100%;max-height:200px;object-fit:cover;border-radius:14px;">` ;
+    } else {
+        emojiEl.textContent = emoji;
+    }
+    document.getElementById('mName').textContent=name;
+    document.getElementById('mTenant').textContent=tenant;
+    document.getElementById('mDesc').textContent=desc||'';
+    document.getElementById('mPrice').textContent='Rp'+Math.round(price).toLocaleString('id');
+    document.getElementById('mHealthy').innerHTML=healthy?'<span style="background:#e8f5ee;color:#1a5c38;padding:4px 16px;border-radius:20px;font-size:12px;font-weight:700;">🌿 Menu Sehat</span>':'';
+    document.getElementById('mNutrition').innerHTML=`
+        <div style="background:white;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#1a5c38;">${Math.round(cal)}</div><div style="font-size:11px;color:#888;">Kalori (kcal)</div></div>
+        <div style="background:white;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#3a8fd4;">${prot}g</div><div style="font-size:11px;color:#888;">Protein</div></div>
+        <div style="background:white;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#e8a020;">${carbs}g</div><div style="font-size:11px;color:#888;">Karbohidrat</div></div>
+        <div style="background:white;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#e05252;">${fat}g</div><div style="font-size:11px;color:#888;">Lemak</div></div>
+        <div style="background:white;border-radius:10px;padding:10px;text-align:center;grid-column:span 2;"><div style="font-size:20px;font-weight:800;color:#4caf78;">${fiber}g</div><div style="font-size:11px;color:#888;">Serat</div></div>`;
+    document.getElementById('menuModal').style.display='block';
+}
+function closeModal(){document.getElementById('menuModal').style.display='none';}
+</script>
+{% endblock %}

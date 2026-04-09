@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit' if item else 'Tambah' }} Produk - S3C{% endblock %}
+{% block content %}
+<div style="padding:16px 16px 0;">
+    <a href="{{ url_for('admin_marketplace') }}" style="display:inline-flex;align-items:center;gap:6px;color:#1a5c38;font-size:14px;font-weight:600;text-decoration:none;">
+        <i class="fas fa-arrow-left"></i> Kembali
+    </a>
+</div>
+<div style="padding:16px;">
+    <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#1a5c38;margin-bottom:4px;">
+        {{ '✏️ Edit Produk' if item else '➕ Tambah Produk' }}
+    </div>
+    <div style="font-size:13px;color:#888;margin-bottom:20px;">Produk hasil daur ulang sisa kantin</div>
+
+    <form method="POST" enctype="multipart/form-data">
+        <!-- FOTO -->
+        <div class="form-group">
+            <label class="form-label">📷 Foto Produk</label>
+            <div id="photoPreviewWrap" style="margin-bottom:10px;{% if not item or not item.image_file %}display:none;{% endif %}">
+                <div style="width:120px;height:120px;border-radius:14px;overflow:hidden;border:2px solid #e8ede9;position:relative;">
+                    <img id="photoPreview" src="{% if item and item.image_file %}{{ item.image_file }}{% endif %}" style="width:100%;height:100%;object-fit:cover;" alt="Preview">
+                    <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.45);color:white;font-size:10px;text-align:center;padding:3px;">Foto saat ini</div>
+                </div>
+            </div>
+            <label for="image_file" style="display:flex;align-items:center;gap:8px;padding:12px 16px;border:2px dashed #c4956a;border-radius:12px;cursor:pointer;background:#fdf8f3;">
+                <i class="fas fa-camera" style="color:#8b6914;font-size:20px;"></i>
+                <div>
+                    <div style="font-weight:600;font-size:14px;color:#8b6914;">Pilih Foto Produk</div>
+                    <div style="font-size:11px;color:#888;">JPG, PNG, WebP · max 5MB</div>
+                </div>
+            </label>
+            <input type="file" name="image_file" id="image_file" accept="image/*" style="display:none;" onchange="previewPhoto(this)">
+        </div>
+
+        <!-- Emoji fallback -->
+        <div class="form-group">
+            <label class="form-label">Ikon Emoji (jika tidak ada foto)</label>
+            <div style="display:flex;gap:7px;flex-wrap:wrap;">
+                {% for em in ['♻️','🌿','💧','🌱','🪴','🍃','🌾','🍂','🌻','🎋','🎁','🧴','🪣','🧺','🌍','💚','🌀','🍊','🌾','🌺'] %}
+                <label style="cursor:pointer;">
+                    <input type="radio" name="image_emoji" value="{{ em }}" {% if (item and item.image_emoji==em) or (not item and em=='♻️') %}checked{% endif %} style="display:none;" class="emoji-radio">
+                    <div class="emoji-btn" style="width:38px;height:38px;border-radius:9px;border:2px solid #e8ede9;display:flex;align-items:center;justify-content:center;font-size:20px;transition:all .2s;{% if (item and item.image_emoji==em) or (not item and em=='♻️') %}border-color:#8b6914;background:#f5e6d3;{% endif %}">{{ em }}</div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Nama Produk *</label>
+            <input type="text" name="name" class="form-control" value="{{ item.name if item else '' }}" required placeholder="Kompos Organik Premium">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Deskripsi</label>
+            <textarea name="description" class="form-control" rows="3" placeholder="Deskripsi produk...">{{ item.description if item else '' }}</textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Kategori *</label>
+            <select name="category" class="form-control">
+                {% for cat,label in [('kompos','Kompos'),('pupuk_cair','Pupuk Cair'),('kerajinan','Kerajinan Daur Ulang'),('lainnya','Lainnya')] %}
+                <option value="{{ cat }}" {% if item and item.category==cat %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label">Harga (Rp) *</label>
+                <input type="number" name="price" class="form-control" value="{{ item.price if item else '' }}" required placeholder="15000">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Satuan</label>
+                <select name="unit" class="form-control">
+                    {% for u in ['kg','gram','liter','ml','pcs','paket','botol 500ml','karung 5kg'] %}
+                    <option {% if item and item.unit==u %}selected{% endif %}>{{ u }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Stok</label>
+            <input type="number" name="stock" class="form-control" value="{{ item.stock if item else 0 }}" placeholder="0">
+        </div>
+        {% if item %}
+        <div style="margin-bottom:20px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <input type="checkbox" name="is_available" {% if item.is_available %}checked{% endif %} style="width:18px;height:18px;accent-color:#1a5c38;">
+                <span style="font-size:14px;font-weight:600;color:#555;">Aktifkan produk ini</span>
+            </label>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" style="background:linear-gradient(135deg,#4a3728,#8b6914);">
+            <i class="fas fa-save"></i> {{ 'Simpan' if item else 'Tambah Produk' }}
+        </button>
+    </form>
+</div>
+<script>
+function previewPhoto(input) {
+    if(input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('photoPreview').src = e.target.result;
+            document.getElementById('photoPreviewWrap').style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+document.querySelectorAll('.emoji-radio').forEach(r => {
+    r.addEventListener('change', function(){
+        document.querySelectorAll('.emoji-btn').forEach(b=>{b.style.borderColor='#e8ede9';b.style.background='white';});
+        this.nextElementSibling.style.borderColor='#8b6914';
+        this.nextElementSibling.style.background='#f5e6d3';
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Kelola Menu - S3C{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;padding:16px;">
+    <div>
+        <div class="page-title" style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#1a5c38;">📋 Menu Saya</div>
+        <div class="page-subtitle" style="font-size:13px;color:#888;">{{ menus|length }} menu terdaftar</div>
+    </div>
+    <a href="{{ url_for('tenant_add_menu') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus"></i> Tambah
+    </a>
+</div>
+
+<div style="padding:0 16px 80px;">
+    {% if menus %}
+    {% for menu in menus %}
+    <div style="background:white;border-radius:16px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(26,92,56,0.08);">
+        <div style="display:flex;align-items:center;gap:12px;padding:14px;">
+            <div style="width:58px;height:58px;border-radius:12px;overflow:hidden;flex-shrink:0;background:#f0f4f1;display:flex;align-items:center;justify-content:center;">
+                {% if menu.image_file %}
+                <img src="{{ menu.image_file }}" style="width:100%;height:100%;object-fit:cover;">
+                {% else %}
+                <span style="font-size:28px;">{{ menu.image_emoji }}</span>
+                {% endif %}
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <div style="font-weight:700;font-size:14px;color:#1e2a1f;">{{ menu.name }}</div>
+                    {% if menu.is_healthy %}<span style="font-size:10px;color:#1a5c38;font-weight:700;background:#e8f5ee;padding:2px 6px;border-radius:10px;">🌿 Sehat</span>{% endif %}
+                    {% if not menu.is_available %}<span style="font-size:10px;color:#e05252;font-weight:700;background:#fff0f0;padding:2px 6px;border-radius:10px;">⚫ Nonaktif</span>{% endif %}
+                </div>
+                <div style="font-size:12px;color:#888;margin-top:2px;">{{ menu.category.title() }} · {{ menu.calories|int }} kal</div>
+                <div style="font-weight:800;color:#1a5c38;font-size:15px;">Rp{{ "{:,.0f}".format(menu.price) }}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <a href="{{ url_for('tenant_edit_menu', menu_id=menu.id) }}" class="btn btn-secondary btn-sm" style="padding:6px 12px;">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <form method="POST" action="{{ url_for('tenant_delete_menu', menu_id=menu.id) }}" onsubmit="return confirm('Hapus menu ini?')">
+                    <button type="submit" class="btn btn-danger btn-sm" style="padding:6px 12px;width:100%;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-utensils"></i>
+        <p>Belum ada menu. <a href="{{ url_for('tenant_add_menu') }}" style="color:#2d8653;font-weight:700;">Tambah menu pertama!</a></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

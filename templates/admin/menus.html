@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Kelola Semua Menu - S3C{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 16px 0;">
+    <div>
+        <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:#1a5c38;">🍽️ Semua Menu</div>
+        <div style="font-size:13px;color:#888;">{{ menus|length }} menu dari {{ tenants|length }} kantin</div>
+    </div>
+    <a href="{{ url_for('admin_add_menu') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Tambah</a>
+</div>
+
+<!-- Filter by tenant -->
+<div style="padding:12px 16px 0;display:flex;gap:8px;overflow-x:auto;">
+    <a href="{{ url_for('admin_menus') }}" style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;background:#1a5c38;color:white;">Semua</a>
+    {% for t in tenants %}
+    <a href="{{ url_for('admin_menus') }}?tenant={{ t.id }}" style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;background:#e8f5ee;color:#1a5c38;">{{ t.tenant_name or t.name }}</a>
+    {% endfor %}
+</div>
+
+<div style="padding:12px 16px 80px;">
+    {% set ns = namespace(cur_tid=None) %}
+    {% for menu in menus %}
+        {% if menu.tenant_id != ns.cur_tid %}
+        <div style="background:linear-gradient(135deg,#1a5c38,#2d8653);border-radius:12px;padding:10px 16px;margin:14px 0 8px;color:white;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:20px;">🍽️</span>
+            <div>
+                <div style="font-weight:800;font-size:14px;">{{ menu.tenant_name or menu.tname }}</div>
+            </div>
+        </div>
+        {% set ns.cur_tid = menu.tenant_id %}
+        {% endif %}
+        <div style="background:white;border-radius:14px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(26,92,56,0.07);">
+            <div style="width:52px;height:52px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#f0f4f1;display:flex;align-items:center;justify-content:center;">
+                {% if menu.image_file %}
+                <img src="{{ menu.image_file }}" style="width:100%;height:100%;object-fit:cover;">
+                {% else %}
+                <span style="font-size:26px;">{{ menu.image_emoji }}</span>
+                {% endif %}
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                    <div style="font-weight:700;font-size:13px;color:#1e2a1f;">{{ menu.name }}</div>
+                    {% if menu.is_healthy %}<span style="font-size:10px;color:#1a5c38;background:#e8f5ee;padding:1px 6px;border-radius:10px;font-weight:700;">🌿</span>{% endif %}
+                    {% if not menu.is_available %}<span style="font-size:10px;color:#e05252;background:#fff0f0;padding:1px 6px;border-radius:10px;font-weight:700;">OFF</span>{% endif %}
+                </div>
+                <div style="font-size:12px;color:#888;">{{ menu.category.title() }} · {{ menu.calories|int }} kal</div>
+                <div style="font-weight:800;color:#1a5c38;font-size:14px;">Rp{{ "{:,.0f}".format(menu.price) }}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+                <a href="{{ url_for('admin_edit_menu', menu_id=menu.id) }}" class="btn btn-secondary btn-sm" style="padding:5px 10px;"><i class="fas fa-edit"></i></a>
+                <form method="POST" action="{{ url_for('admin_delete_menu', menu_id=menu.id) }}" onsubmit="return confirm('Hapus menu?')">
+                    <button type="submit" class="btn btn-danger btn-sm" style="padding:5px 10px;width:100%;"><i class="fas fa-trash"></i></button>
+                </form>
+            </div>
+        </div>
+    {% else %}
+    <div class="empty-state"><i class="fas fa-utensils"></i><p>Belum ada menu</p></div>
+    {% endfor %}
+</div>
+{% endblock %}

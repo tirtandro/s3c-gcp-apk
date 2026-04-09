@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ video.title }} - Edu Hub S3C</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Fraunces:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root { --forest:#1a5c38; --leaf:#2d8653; --sage:#4caf78; --foam:#e8f5ee; --mint:#a8e6bc; --mist:#f0f4f1; --charcoal:#1e2a1f; --earth:#8b6914; --sand:#f5e6d3; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--mist); color:var(--charcoal); }
+        .topbar { background:white; border-bottom:1px solid rgba(26,92,56,0.1); padding:0 16px; height:60px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 2px 8px rgba(26,92,56,0.08); }
+        .topbar-brand { display:flex; align-items:center; gap:8px; text-decoration:none; }
+        .topbar-brand img { width:36px; height:36px; object-fit:contain; }
+        .topbar-title { font-family:'Fraunces',serif; font-size:15px; font-weight:700; color:var(--forest); }
+        .topbar-title span { color:var(--sage); }
+        .btn-back { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:var(--foam); color:var(--forest); border-radius:10px; font-weight:600; font-size:13px; text-decoration:none; border:1px solid var(--mint); }
+        .container { max-width:800px; margin:0 auto; padding:16px; }
+        .video-player-wrap { border-radius:16px; overflow:hidden; box-shadow:0 8px 32px rgba(26,92,56,0.15); margin-bottom:20px; background:#000; }
+        .video-player-wrap iframe { display:block; width:100%; aspect-ratio:16/9; border:none; }
+        .video-meta-card { background:white; border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:0 2px 12px rgba(26,92,56,0.08); }
+        .video-cat { display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; margin-bottom:10px; }
+        .cat-lingkungan { background:#e8f5ee; color:var(--forest); }
+        .cat-gizi { background:#e8f4fd; color:#1a56c4; }
+        .cat-umum { background:var(--sand); color:var(--earth); }
+        .cat-zerowaste { background:#fff0f8; color:#b04090; }
+        .cat-pertanian { background:#f0fff0; color:#2d6a2d; }
+        .video-title { font-family:'Fraunces',serif; font-size:22px; font-weight:700; line-height:1.3; color:var(--charcoal); margin-bottom:8px; }
+        .video-info-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+        .video-uploader { font-size:12px; color:#888; display:flex; align-items:center; gap:4px; }
+        .video-desc { font-size:14px; line-height:1.75; color:#555; white-space:pre-wrap; }
+        .section-title { font-family:'Fraunces',serif; font-size:18px; font-weight:700; color:var(--forest); margin-bottom:14px; }
+        .related-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        @media(min-width:500px) { .related-grid { grid-template-columns:repeat(4,1fr); } }
+        .related-card { background:white; border-radius:12px; overflow:hidden; text-decoration:none; box-shadow:0 2px 8px rgba(26,92,56,0.08); display:block; transition:transform .2s; }
+        .related-card:hover { transform:translateY(-3px); }
+        .related-thumb { position:relative; padding-top:56.25%; background:#0d2818; }
+        .related-thumb iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:none; pointer-events:none; }
+        .related-thumb-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.25); }
+        .play-sm { width:32px; height:32px; background:rgba(255,255,255,0.9); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--forest); }
+        .related-info { padding:8px 10px; }
+        .related-title { font-size:12px; font-weight:700; color:var(--charcoal); line-height:1.4; }
+        .share-bar { display:flex; gap:10px; margin-top:16px; padding-top:16px; border-top:1px solid #f0f0f0; }
+        .share-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; border:none; text-decoration:none; }
+        .share-copy { background:var(--foam); color:var(--forest); }
+        .hub-footer { background:var(--forest); color:white; text-align:center; padding:20px 16px; margin-top:32px; font-size:13px; }
+        .hub-footer a { color:var(--mint); text-decoration:none; font-weight:700; }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <a href="{{ url_for('index') }}" class="topbar-brand" title="Beranda">
+        <img src="{{ url_for('static', filename='img/logo_sekolah.png') }}" alt="Logo">
+        <div class="topbar-title">S3<span>C</span> · Edu Hub</div>
+    </a>
+    <a href="{{ url_for('edu_hub') }}" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali</a>
+</div>
+
+<div class="container">
+    <!-- Video Player -->
+    <div style="margin-bottom:4px;padding-top:12px;">
+        <a href="{{ url_for('edu_hub') }}" style="font-size:13px;color:var(--leaf);font-weight:600;text-decoration:none;">
+            ← Education Hub
+        </a>
+    </div>
+
+    <div class="video-player-wrap" style="margin-top:12px;">
+        <iframe src="{{ video.youtube_url }}?autoplay=1&rel=0&modestbranding=1"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+    </div>
+
+    <!-- Video Info -->
+    <div class="video-meta-card">
+        <div class="video-cat cat-{{ video.category }}">
+            {% if video.category=='lingkungan' %}🌍 Lingkungan
+            {% elif video.category=='gizi' %}🥗 Gizi & Kesehatan
+            {% elif video.category=='zerowaste' %}♻️ Zero Waste
+            {% elif video.category=='pertanian' %}🌾 Pertanian
+            {% else %}📚 Umum{% endif %}
+        </div>
+        <h1 class="video-title">{{ video.title }}</h1>
+        <div class="video-info-row">
+            <div class="video-uploader">
+                <i class="fas fa-user-circle"></i>
+                Dikurasi oleh: <strong>{{ video.uploader_name or 'Tim S3C' }}</strong>
+            </div>
+            <div class="video-uploader">
+                <i class="fas fa-calendar"></i>
+                {{ video.created_at | strftime('%d %B %Y') }}
+            </div>
+        </div>
+        {% if video.description %}
+        <div class="video-desc">{{ video.description }}</div>
+        {% endif %}
+
+        <!-- Share -->
+        <div class="share-bar">
+            <button class="share-btn share-copy" onclick="copyLink()">
+                <i class="fas fa-link"></i> Salin Link
+            </button>
+            <a href="{{ video.youtube_url | replace('/embed/', '/watch?v=') }}" target="_blank"
+               class="share-btn" style="background:#ff0000;color:white;">
+                <i class="fab fa-youtube"></i> Buka di YouTube
+            </a>
+        </div>
+    </div>
+
+    <!-- Related Videos -->
+    {% if related %}
+    <div style="margin-bottom:8px;">
+        <div class="section-title">🎬 Video Terkait</div>
+        <div class="related-grid">
+            {% for r in related %}
+            <a href="{{ url_for('edu_hub_detail', video_id=r.id) }}" class="related-card">
+                <div class="related-thumb">
+                    <iframe src="{{ r.youtube_url }}" loading="lazy" allowfullscreen></iframe>
+                    <div class="related-thumb-overlay">
+                        <div class="play-sm"><i class="fas fa-play" style="margin-left:2px;"></i></div>
+                    </div>
+                </div>
+                <div class="related-info">
+                    <div class="related-title">{{ r.title }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="text-align:center;margin:24px 0 8px;">
+        <a href="{{ url_for('edu_hub') }}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:var(--forest);color:white;border-radius:14px;font-weight:700;font-size:15px;text-decoration:none;">
+            <i class="fas fa-th-large"></i> Lihat Semua Video
+        </a>
+    </div>
+</div>
+
+<div class="hub-footer">
+    🌿 <strong>Sustainable Education Hub</strong> · S3C SMAN 2 Wates ·
+    <a href="{{ url_for('marketplace') }}">Marketplace</a> ·
+    <a href="{{ url_for('login') }}">Login Siswa</a>
+</div>
+
+<script>
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        const btn = document.querySelector('.share-copy');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Tersalin!';
+        btn.style.background = '#e8f5ee';
+        setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; }, 2000);
+    });
+}
+</script>
+</body>
+</html>

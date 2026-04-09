@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% block title %}Analitik - S3C{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title">📊 Analitik & Monitoring</div>
+    <div class="page-subtitle">Data-driven insights untuk evaluasi kantin</div>
+</div>
+
+<div class="section">
+    <!-- Order trend -->
+    <div class="card" style="margin-bottom:16px;">
+        <div class="card-header"><div class="card-title">📈 Tren Pesanan (7 Hari)</div></div>
+        <div class="card-body">
+            <canvas id="orderTrendChart" height="180"></canvas>
+        </div>
+    </div>
+
+    <!-- Waste distribution -->
+    <div class="card" style="margin-bottom:16px;">
+        <div class="card-header"><div class="card-title">🌱 Distribusi Food Waste</div></div>
+        <div class="card-body">
+            <canvas id="wasteChart" height="200"></canvas>
+            <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                {% set waste_info = [('habis','Habis Total','😋','#2d8653'),('sedikit','Sedikit Sisa','🤏','#4caf78'),('setengah','Setengah','😬','#f6c847'),('banyak','Banyak Sisa','😔','#e05252')] %}
+                {% for key, label, emoji, color in waste_info %}
+                {% set count = waste_counts.get(key, 0) %}
+                <div style="background:#f8f8f8;border-radius:10px;padding:10px;display:flex;align-items:center;gap:8px;">
+                    <div style="font-size:20px;">{{ emoji }}</div>
+                    <div>
+                        <div style="font-size:11px;color:#888;">{{ label }}</div>
+                        <div style="font-weight:700;font-size:15px;color:{{ color }};" id="waste_{{ key }}">-</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu health ratio -->
+    <div class="card" style="margin-bottom:16px;">
+        <div class="card-header"><div class="card-title">🥗 Rasio Menu Sehat vs Biasa</div></div>
+        <div class="card-body">
+            <canvas id="healthChart" height="160"></canvas>
+            <div style="display:flex;gap:12px;margin-top:12px;justify-content:center;">
+                <div style="display:flex;align-items:center;gap:6px;font-size:13px;">
+                    <div style="width:12px;height:12px;background:#2d8653;border-radius:3px;"></div>
+                    <span>Sehat ({{ healthy_count }})</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;font-size:13px;">
+                    <div style="width:12px;height:12px;background:#e8a020;border-radius:3px;"></div>
+                    <span>Regular ({{ unhealthy_count }})</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tenant performance -->
+    <div class="card" style="margin-bottom:16px;">
+        <div class="card-header"><div class="card-title">🏪 Performa Tenant</div></div>
+        <div class="card-body" style="padding:12px 16px;">
+            {% for t in tenant_stats %}
+            <div style="padding:10px 0;{% if not loop.last %}border-bottom:1px solid #f0f4f1;{% endif %}">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <div style="font-weight:700;font-size:14px;">{{ t.name }}</div>
+                    <div style="font-size:12px;color:#888;">{{ t.orders }} pesanan</div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <div style="font-size:12px;color:#555;">Total Pendapatan</div>
+                    <div style="font-weight:700;color:#1a5c38;font-size:14px;">Rp{{ "{:,.0f}".format(t.revenue) }}</div>
+                </div>
+                {% set max_rev = tenant_stats | max(attribute='revenue') %}
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width:{{ (t.revenue / max_rev.revenue * 100)|int if max_rev.revenue > 0 else 0 }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Top menus -->
+    <div class="card">
+        <div class="card-header"><div class="card-title">🏆 Menu Terpopuler</div></div>
+        <div class="card-body" style="padding:12px 16px;">
+            {% for m in top_menus %}
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;{% if not loop.last %}border-bottom:1px solid #f0f4f1;{% endif %}">
+                <div style="width:32px;height:32px;background:{% if loop.index == 1 %}linear-gradient(135deg,#f6c847,#e8a020){% elif loop.index == 2 %}linear-gradient(135deg,#c0c0c0,#a0a0a0){% elif loop.index == 3 %}linear-gradient(135deg,#cd7f32,#a06020){% else %}#f0f0f0{% endif %};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:{% if loop.index <= 3 %}white{% else %}#888{% endif %};">{{ loop.index }}</div>
+                <div style="font-size:22px;">{{ m[1] }}</div>
+                <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:600;">{{ m[0] }}</div>
+                    <div class="progress-bar" style="margin-top:4px;">
+                        <div class="progress-fill" style="width:{{ (m[2] / top_menus[0][2] * 100)|int }}%"></div>
+                    </div>
+                </div>
+                <div style="font-weight:800;color:#1a5c38;font-size:14px;">{{ m[2] }}x</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+const wasteData = {{ waste_data | safe }};
+const orderTrend = {{ order_trend | safe }};
+
+// Order trend chart
+new Chart(document.getElementById('orderTrendChart'), {
+    type: 'line',
+    data: {
+        labels: orderTrend.map(d => d.date),
+        datasets: [{
+            label: 'Pesanan',
+            data: orderTrend.map(d => d.count),
+            borderColor: '#1a5c38',
+            backgroundColor: 'rgba(26,92,56,0.1)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#1a5c38',
+            pointRadius: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: '#f0f4f1' }, ticks: { font: { family: 'Plus Jakarta Sans' } } },
+            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 11 } } }
+        }
+    }
+});
+
+// Waste donut chart
+const wasteLabels = { 'habis': 'Habis 😋', 'none': 'Tak Bersisa ✅', 'sedikit': 'Sedikit 🤏', 'setengah': 'Setengah 😬', 'banyak': 'Banyak 😔' };
+const wasteColors = ['#2d8653','#a8e6bc','#f6c847','#e8a020','#e05252'];
+const wKeys = Object.keys(wasteData);
+new Chart(document.getElementById('wasteChart'), {
+    type: 'doughnut',
+    data: {
+        labels: wKeys.map(k => wasteLabels[k] || k),
+        datasets: [{ data: wKeys.map(k => wasteData[k]), backgroundColor: wasteColors, borderWidth: 0 }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { family: 'Plus Jakarta Sans', size: 11 }, padding: 10 } } }
+    }
+});
+
+// Update waste counts in UI
+['habis','sedikit','setengah','banyak'].forEach(k => {
+    const el = document.getElementById('waste_' + k);
+    if (el) el.textContent = (wasteData[k] || 0) + ' log';
+});
+
+// Health ratio chart
+new Chart(document.getElementById('healthChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Menu Kantin'],
+        datasets: [
+            { label: '🌿 Sehat', data: [{{ healthy_count }}], backgroundColor: '#2d8653', borderRadius: 6 },
+            { label: 'Regular', data: [{{ unhealthy_count }}], backgroundColor: '#e8a020', borderRadius: 6 }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: '#f0f4f1' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+</script>
+{% endblock %}

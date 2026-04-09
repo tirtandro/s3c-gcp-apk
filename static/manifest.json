@@ -1,0 +1,21 @@
+{
+    "name": "S3C Smart Canteen",
+    "short_name": "S3C",
+    "description": "Smart Sustainable School Canteen - SMA Negeri 2 Wates",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#1a5c38",
+    "theme_color": "#1a5c38",
+    "icons": [
+        {
+            "src": "/static/img/logo_sekolah.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/img/logo_sekolah.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

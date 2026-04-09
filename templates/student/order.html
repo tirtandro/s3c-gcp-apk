@@ -1,0 +1,407 @@
+{% extends 'base.html' %}
+{% block title %}Pre-Order - S3C{% endblock %}
+{% block extra_head %}
+<style>
+/* ── NUTRITION QUEST BAR ── */
+.quest-bar {
+    margin: 12px 16px 0;
+    background: white;
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 2px 12px rgba(26,92,56,0.1);
+    border: 2px solid #e8f5ee;
+}
+.quest-title {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+}
+.quest-title-left { display: flex; align-items: center; gap: 8px; }
+.quest-label { font-weight: 800; font-size: 14px; color: #1a5c38; }
+.quest-badge {
+    background: linear-gradient(135deg, #f6c847, #e8a020);
+    color: white; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+}
+.quest-tip { font-size: 11px; color: #aaa; }
+.nutrient-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.nutrient-item { }
+.nutrient-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.nutrient-name { font-size: 11px; font-weight: 700; color: #555; }
+.nutrient-val { font-size: 11px; font-weight: 700; }
+.nutrient-bar { height: 7px; background: #f0f4f1; border-radius: 4px; overflow: hidden; }
+.nutrient-fill { height: 100%; border-radius: 4px; transition: width 0.4s cubic-bezier(.4,0,.2,1); }
+/* complete flash */
+@keyframes quest-complete { 0%{transform:scale(1)} 50%{transform:scale(1.06)} 100%{transform:scale(1)} }
+.quest-complete { animation: quest-complete 0.4s ease; }
+
+/* ── MENU CARD ── */
+.menu-item-card {
+    background: white;
+    border-radius: 16px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 10px rgba(26,92,56,0.08);
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+    cursor: pointer;
+}
+.menu-item-card:active { transform: scale(0.98); }
+.menu-item-inner { display: flex; align-items: stretch; gap: 0; }
+.menu-thumb {
+    width: 80px; flex-shrink: 0;
+    background: #f0f4f1;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+}
+.menu-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.menu-thumb-emoji { font-size: 36px; }
+.menu-body { flex: 1; padding: 12px 10px 12px 12px; min-width: 0; }
+.menu-body-name { font-weight: 700; font-size: 14px; color: #1e2a1f; margin-bottom: 2px; }
+.menu-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 4px; }
+.tag-healthy { background: #e8f5ee; color: #1a5c38; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+.tag-kal { background: #fff8e8; color: #8b6914; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+.tag-prot { background: #e8f0fe; color: #1a56c4; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+.menu-price-row { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+.menu-price { font-weight: 800; color: #1a5c38; font-size: 15px; }
+/* mini nutrition preview bars */
+.mini-nutri { display: flex; gap: 3px; margin-top: 4px; }
+.mini-nutri-bar { height: 4px; border-radius: 2px; flex: 1; background: #f0f4f1; overflow: hidden; }
+.mini-nutri-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+/* qty control */
+.qty-ctrl { display: flex; align-items: center; gap: 4px; padding: 10px 12px 10px 0; align-self: center; flex-shrink: 0; }
+.qty-btn {
+    width: 30px; height: 30px; border-radius: 8px; border: none;
+    font-size: 18px; font-weight: 700; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; transition: transform 0.1s;
+}
+.qty-btn:active { transform: scale(0.9); }
+.qty-minus { background: #f0f4f1; color: #555; border: 2px solid #e8ede9; }
+.qty-plus { background: #1a5c38; color: white; }
+.qty-num { font-weight: 800; font-size: 17px; min-width: 22px; text-align: center; color: #1a5c38; }
+
+/* ── CHECKOUT ── */
+.checkout-item-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid #f0f4f1;
+}
+.checkout-thumb {
+    width: 44px; height: 44px; border-radius: 8px; overflow: hidden;
+    background: #f0f4f1; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+}
+.checkout-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.checkout-name { font-size: 13px; font-weight: 600; flex: 1; }
+.checkout-price { font-size: 13px; font-weight: 700; color: #1a5c38; }
+
+/* ── QUEST COMPLETE OVERLAY ── */
+.quest-pop {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg,#1a5c38,#2d8653);
+    color: white; padding: 12px 20px; border-radius: 16px;
+    font-weight: 700; font-size: 14px; z-index: 200;
+    box-shadow: 0 8px 24px rgba(26,92,56,0.4);
+    display: flex; align-items: center; gap: 8px;
+    animation: pop-in 0.4s cubic-bezier(.4,0,.2,1);
+    pointer-events: none;
+}
+@keyframes pop-in {
+    0% { opacity:0; transform: translateX(-50%) translateY(-12px) scale(0.9); }
+    100% { opacity:1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+</style>
+{% endblock %}
+{% block content %}
+
+<!-- ══ NUTRITION QUEST BAR ══ -->
+<div class="quest-bar" id="questBar">
+    <div class="quest-title">
+        <div class="quest-title-left">
+            <span style="font-size:20px;">🎯</span>
+            <span class="quest-label">Quest Gizi Harianku</span>
+            <span class="quest-badge" id="questBadge">0/5 selesai</span>
+        </div>
+        <span class="quest-tip">tambah menu untuk mengisi</span>
+    </div>
+    <div class="nutrient-row">
+        <div class="nutrient-item">
+            <div class="nutrient-header">
+                <span class="nutrient-name">⚡ Kalori</span>
+                <span class="nutrient-val" id="vKal" style="color:#e8a020;">0 / 600 kcal</span>
+            </div>
+            <div class="nutrient-bar"><div class="nutrient-fill" id="bKal" style="width:0%;background:linear-gradient(90deg,#f6c847,#e8a020);"></div></div>
+        </div>
+        <div class="nutrient-item">
+            <div class="nutrient-header">
+                <span class="nutrient-name">💪 Protein</span>
+                <span class="nutrient-val" id="vProt" style="color:#1a56c4;">0 / 20 g</span>
+            </div>
+            <div class="nutrient-bar"><div class="nutrient-fill" id="bProt" style="width:0%;background:linear-gradient(90deg,#85b7eb,#378add);"></div></div>
+        </div>
+        <div class="nutrient-item">
+            <div class="nutrient-header">
+                <span class="nutrient-name">🌾 Karbo</span>
+                <span class="nutrient-val" id="vCarb" style="color:#8b6914;">0 / 80 g</span>
+            </div>
+            <div class="nutrient-bar"><div class="nutrient-fill" id="bCarb" style="width:0%;background:linear-gradient(90deg,#fac775,#ba7517);"></div></div>
+        </div>
+        <div class="nutrient-item">
+            <div class="nutrient-header">
+                <span class="nutrient-name">🥑 Lemak</span>
+                <span class="nutrient-val" id="vFat" style="color:#e76f51;">0 / 10 g</span>
+            </div>
+            <div class="nutrient-bar"><div class="nutrient-fill" id="bFat" style="width:0%;background:linear-gradient(90deg,#f4a261,#e76f51);"></div></div>
+        </div>
+        <div class="nutrient-item" style="grid-column:span 2;">
+            <div class="nutrient-header">
+                <span class="nutrient-name">🌿 Serat</span>
+                <span class="nutrient-val" id="vFib" style="color:#1a5c38;">0 / 8 g</span>
+            </div>
+            <div class="nutrient-bar"><div class="nutrient-fill" id="bFib" style="width:0%;background:linear-gradient(90deg,#a8e6bc,#2d8653);"></div></div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ MENU LIST ══ -->
+<div class="section">
+{% if menus_by_tenant %}
+    {% for tenant, menus in menus_by_tenant %}
+    <div style="background:linear-gradient(135deg,#1a5c38,#2d8653);border-radius:14px;padding:12px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;color:white;">
+        <div style="font-size:28px;">🍽️</div>
+        <div>
+            <div style="font-weight:800;font-size:15px;">{{ tenant.tenant_name or tenant.name }}</div>
+            <div style="font-size:11px;opacity:.8;">{{ menus|length }} menu tersedia · Penyedia: {{ tenant.name }}</div>
+        </div>
+    </div>
+
+    {% for menu in menus %}
+    <div class="menu-item-card" id="card_{{ menu.id }}">
+        <div class="menu-item-inner">
+            <!-- Thumbnail -->
+            <div class="menu-thumb">
+                {% if menu.image_file %}
+                <img src="{{ menu.image_file }}" alt="{{ menu.name }}">
+                {% else %}
+                <span class="menu-thumb-emoji">{{ menu.image_emoji }}</span>
+                {% endif %}
+            </div>
+            <!-- Info -->
+            <div class="menu-body">
+                <div class="menu-body-name">{{ menu.name }}</div>
+                <div class="menu-tags">
+                    {% if menu.is_healthy %}<span class="tag-healthy">🌿 Sehat</span>{% endif %}
+                    <span class="tag-kal">{{ menu.calories|int }} kcal</span>
+                    <span class="tag-prot">P {{ menu.protein }}g</span>
+                </div>
+                <!-- Mini nutrition preview bars -->
+                <div class="mini-nutri">
+                    <div class="mini-nutri-bar" title="Kalori"><div class="mini-nutri-fill" style="width:{{ [menu.calories/6, 100]|min }}%;background:#f6c847;"></div></div>
+                    <div class="mini-nutri-bar" title="Protein"><div class="mini-nutri-fill" style="width:{{ [menu.protein/0.2, 100]|min }}%;background:#378add;"></div></div>
+                    <div class="mini-nutri-bar" title="Karbo"><div class="mini-nutri-fill" style="width:{{ [menu.carbs/0.8, 100]|min }}%;background:#ba7517;"></div></div>
+                    <div class="mini-nutri-bar" title="Serat"><div class="mini-nutri-fill" style="width:{{ [menu.fiber/0.08, 100]|min }}%;background:#2d8653;"></div></div>
+                </div>
+                <div class="menu-price-row">
+                    <span class="menu-price">Rp{{ "{:,.0f}".format(menu.price) }}</span>
+                </div>
+            </div>
+            <!-- Qty control -->
+            <div class="qty-ctrl">
+                <button class="qty-btn qty-minus" onclick="changeQty({{ menu.id }},{{ menu.price }},{{ menu.calories }},{{ menu.protein }},{{ menu.carbs }},{{ menu.fat }},{{ menu.fiber }},-1)">−</button>
+                <span class="qty-num" id="qty_{{ menu.id }}">0</span>
+                <button class="qty-btn qty-plus" onclick="changeQty({{ menu.id }},{{ menu.price }},{{ menu.calories }},{{ menu.protein }},{{ menu.carbs }},{{ menu.fat }},{{ menu.fiber }},1)">+</button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    <div style="height:12px;"></div>
+    {% endfor %}
+{% else %}
+    <div class="empty-state"><i class="fas fa-utensils"></i><p>Belum ada menu tersedia</p></div>
+{% endif %}
+</div>
+
+<!-- ══ CHECKOUT PANEL ══ -->
+<div id="checkoutPanel" style="display:none;padding:0 16px 16px;">
+    <div class="card">
+        <div class="card-body">
+            <div style="font-weight:700;font-size:16px;margin-bottom:12px;">📝 Ringkasan Pesanan</div>
+            <div id="orderSummary" style="margin-bottom:14px;"></div>
+
+            <!-- Nutrition summary for order -->
+            <div id="nutriSummary" style="background:#f0f4f1;border-radius:12px;padding:12px;margin-bottom:14px;display:none;">
+                <div style="font-size:12px;font-weight:700;color:#1a5c38;margin-bottom:8px;">📊 Total Gizi Pesanan</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;text-align:center;">
+                    <div><div style="font-size:16px;font-weight:800;color:#e8a020;" id="sKal">0</div><div style="font-size:10px;color:#888;">kcal</div></div>
+                    <div><div style="font-size:16px;font-weight:800;color:#378add;" id="sProt">0g</div><div style="font-size:10px;color:#888;">protein</div></div>
+                    <div><div style="font-size:16px;font-weight:800;color:#ba7517;" id="sCarb">0g</div><div style="font-size:10px;color:#888;">karbo</div></div>
+                    <div><div style="font-size:16px;font-weight:800;color:#2d8653;" id="sFib">0g</div><div style="font-size:10px;color:#888;">serat</div></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Catatan (opsional)</label>
+                <textarea id="orderNotes" class="form-control" rows="2" placeholder="Tidak pedas, tambah nasi, dll"></textarea>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:2px solid #f0f4f1;margin-bottom:12px;">
+                <div style="font-weight:700;">Total</div>
+                <div style="font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:#1a5c38;">Rp<span id="checkoutTotal">0</span></div>
+            </div>
+            <form method="POST" action="{{ url_for('order') }}">
+                <input type="hidden" name="cart" id="cartInput">
+                <input type="hidden" name="notes" id="notesInput">
+                <button type="submit" class="btn btn-primary btn-block btn-lg" onclick="prepareOrder(event)">
+                    <i class="fas fa-paper-plane"></i> Kirim Pesanan
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Float Cart -->
+<div id="floatCart" style="display:none;position:fixed;bottom:90px;right:16px;z-index:90;">
+    <button onclick="toggleCheckout()" style="width:58px;height:58px;border-radius:29px;background:linear-gradient(135deg,#1a5c38,#2d8653);border:none;color:white;font-size:22px;cursor:pointer;box-shadow:0 4px 18px rgba(26,92,56,0.45);position:relative;">
+        🛒<span id="floatBadge" style="position:absolute;top:-4px;right:-4px;background:#e8a020;color:white;border-radius:10px;padding:2px 6px;font-size:10px;font-weight:800;min-width:18px;text-align:center;"></span>
+    </button>
+</div>
+
+<script>
+// ── Data store ──
+let cart={}, prices={}, names={}, nutri={}, thumbs={};
+
+{% for tenant, menus in menus_by_tenant %}{% for menu in menus %}
+prices[{{ menu.id }}] = {{ menu.price }};
+names[{{ menu.id }}]  = '{{ menu.name|e }}';
+nutri[{{ menu.id }}]  = { kal:{{ menu.calories }}, prot:{{ menu.protein }}, carb:{{ menu.carbs }}, fat:{{ menu.fat }}, fib:{{ menu.fiber }} };
+thumbs[{{ menu.id }}] = '{% if menu.image_file %}{{ menu.image_file }}{% else %}emoji:{{ menu.image_emoji }}{% endif %}';
+{% endfor %}{% endfor %}
+
+// ── Quest targets ──
+const TARGETS = { kal:600, prot:20, carb:80, fat:10, fib:8 };
+let completedQuests = new Set();
+
+function changeQty(id, price, kal, prot, carb, fat, fib, delta) {
+    if (!cart[id]) cart[id] = 0;
+    cart[id] = Math.max(0, cart[id] + delta);
+    document.getElementById('qty_' + id).textContent = cart[id];
+    if (cart[id] === 0) delete cart[id];
+    // Highlight card
+    const card = document.getElementById('card_' + id);
+    if (cart[id] > 0) {
+        card.style.border = '2px solid #a8e6bc';
+        card.style.background = '#f8fff8';
+    } else {
+        card.style.border = '';
+        card.style.background = '';
+    }
+    updateCart();
+    updateQuest();
+}
+
+function getTotals() {
+    let total=0, kal=0, prot=0, carb=0, fat=0, fib=0, count=0;
+    for (let [id, qty] of Object.entries(cart)) {
+        total += prices[id] * qty;
+        kal   += nutri[id].kal  * qty;
+        prot  += nutri[id].prot * qty;
+        carb  += nutri[id].carb * qty;
+        fat   += nutri[id].fat  * qty;
+        fib   += nutri[id].fib  * qty;
+        count += qty;
+    }
+    return { total, kal, prot, carb, fat, fib, count };
+}
+
+function updateCart() {
+    const { total, count } = getTotals();
+    document.getElementById('floatCart').style.display = count > 0 ? 'block' : 'none';
+    document.getElementById('floatBadge').textContent = count || '';
+    document.getElementById('checkoutTotal').textContent = total.toLocaleString('id');
+}
+
+function updateQuest() {
+    const { kal, prot, carb, fat, fib } = getTotals();
+
+    const vals = { kal, prot, carb, fat, fib };
+    const ids = { kal:'Kal', prot:'Prot', carb:'Carb', fat:'Fat', fib:'Fib' };
+    const units = { kal:' kcal', prot:'g', carb:'g', fat:'g', fib:'g' };
+    const targLabels = { kal:'600', prot:'20', carb:'80', fat:'10', fib:'8' };
+    let done = 0;
+    const wasComplete = new Set(completedQuests);
+
+    for (let [key, val] of Object.entries(vals)) {
+        const pct = Math.min(100, (val / TARGETS[key]) * 100);
+        const elKey = key.charAt(0).toUpperCase() + key.slice(1);
+        document.getElementById('b' + elKey).style.width = pct + '%';
+        document.getElementById('v' + elKey).textContent =
+            Math.round(val) + ' / ' + targLabels[key] + units[key];
+        if (pct >= 100) {
+            done++;
+            if (!wasComplete.has(key)) {
+                completedQuests.add(key);
+                showQuestPop({ kal:'⚡ Kalori', prot:'💪 Protein', carb:'🌾 Karbohidrat', fat:'🥑 Lemak', fib:'🌿 Serat' }[key]);
+            }
+        } else {
+            completedQuests.delete(key);
+        }
+    }
+
+    const badge = document.getElementById('questBadge');
+    badge.textContent = done + '/5 selesai';
+    if (done === 5) {
+        badge.style.background = 'linear-gradient(135deg,#1a5c38,#2d8653)';
+        badge.textContent = '🏆 Quest Lengkap!';
+    } else {
+        badge.style.background = 'linear-gradient(135deg,#f6c847,#e8a020)';
+    }
+}
+
+let popTimer;
+function showQuestPop(name) {
+    clearTimeout(popTimer);
+    const existing = document.getElementById('questPop');
+    if (existing) existing.remove();
+    const pop = document.createElement('div');
+    pop.id = 'questPop';
+    pop.className = 'quest-pop';
+    pop.innerHTML = '🎉 Quest selesai! <strong>' + name + '</strong> terpenuhi!';
+    document.body.appendChild(pop);
+    popTimer = setTimeout(() => { pop.style.opacity='0'; pop.style.transition='opacity .4s'; setTimeout(()=>pop.remove(), 400); }, 2500);
+}
+
+function toggleCheckout() {
+    const panel = document.getElementById('checkoutPanel');
+    const show = panel.style.display === 'none' || !panel.style.display;
+    if (show) {
+        const { kal, prot, carb, fib } = getTotals();
+        // Build summary with thumbnails
+        let html = '';
+        for (let [id, qty] of Object.entries(cart)) {
+            const thumb = thumbs[id];
+            const imgHtml = thumb.startsWith('emoji:')
+                ? `<div class="checkout-thumb" style="font-size:22px;justify-content:center;">${thumb.replace('emoji:','')}</div>`
+                : `<div class="checkout-thumb"><img src="${thumb}" alt=""></div>`;
+            html += `<div class="checkout-item-row">
+                ${imgHtml}
+                <div class="checkout-name">${qty}× ${names[id]}</div>
+                <div class="checkout-price">Rp${(prices[id]*qty).toLocaleString('id')}</div>
+            </div>`;
+        }
+        document.getElementById('orderSummary').innerHTML = html || '<p style="color:#aaa;font-size:13px;">Keranjang kosong</p>';
+        // Nutrition summary
+        if (Object.keys(cart).length > 0) {
+            document.getElementById('nutriSummary').style.display = 'block';
+            document.getElementById('sKal').textContent = Math.round(kal);
+            document.getElementById('sProt').textContent = Math.round(prot) + 'g';
+            document.getElementById('sCarb').textContent = Math.round(carb) + 'g';
+            document.getElementById('sFib').textContent  = Math.round(fib) + 'g';
+        }
+    }
+    panel.style.display = show ? 'block' : 'none';
+    if (show) panel.scrollIntoView({ behavior: 'smooth' });
+}
+
+function prepareOrder(e) {
+    document.getElementById('cartInput').value = JSON.stringify(
+        Object.entries(cart).map(([id, qty]) => ({ menu_id: parseInt(id), qty }))
+    );
+    document.getElementById('notesInput').value = document.getElementById('orderNotes').value;
+}
+</script>
+{% endblock %}

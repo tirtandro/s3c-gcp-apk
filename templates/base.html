@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}S3C - Smart Sustainable School Canteen{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1a5c38">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/static/img/logo_sekolah.png">
+    <style>
+        :root {
+            --forest: #1a5c38;
+            --leaf: #2d8653;
+            --sage: #4caf78;
+            --mint: #a8e6bc;
+            --foam: #e8f5ee;
+            --earth: #8b6914;
+            --clay: #c4956a;
+            --sand: #f5e6d3;
+            --cream: #fdfaf6;
+            --bark: #4a3728;
+            --charcoal: #1e2a1f;
+            --mist: #f0f4f1;
+            --white: #ffffff;
+            --danger: #e05252;
+            --warning: #e8a020;
+            --info: #3a8fd4;
+            --shadow-sm: 0 2px 8px rgba(26,92,56,0.08);
+            --shadow-md: 0 4px 20px rgba(26,92,56,0.12);
+            --shadow-lg: 0 8px 40px rgba(26,92,56,0.16);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --radius-lg: 24px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: auto; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--mist);
+            color: var(--charcoal);
+            min-height: 100vh;
+            padding-bottom: 90px;
+        }
+        /* ═══════════════════════════════════
+           TOP NAV  — redesigned
+           ═══════════════════════════════════ */
+        .top-nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            height: 68px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 14px;
+            /* deep forest background with subtle texture */
+            background: linear-gradient(110deg, #071a0e 0%, #0f3320 40%, #1a5c38 75%, #245c3a 100%);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.45);
+            overflow: hidden;
+        }
+        /* decorative glow circles */
+        .top-nav::before {
+            content: '';
+            position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+            width: 180px; height: 90px;
+            background: radial-gradient(ellipse, rgba(76,175,120,0.18) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .top-nav::after {
+            content: '';
+            position: absolute; top: 0; right: 0; bottom: 0;
+            width: 220px;
+            background: linear-gradient(90deg, transparent, rgba(246,200,71,0.05));
+            pointer-events: none;
+        }
+
+        /* ── left brand block ── */
+        .nav-brand {
+            display: flex; align-items: center; gap: 9px;
+            text-decoration: none; position: relative; z-index: 1;
+        }
+        .nav-school-logo {
+            width: 46px; height: 46px; flex-shrink: 0;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+        }
+        .nav-school-info {
+            display: flex; flex-direction: column;
+            justify-content: center; gap: 2px;
+        }
+        .nav-school-name {
+            font-size: 8.5px; font-weight: 800;
+            color: rgba(255,255,255,0.6);
+            letter-spacing: 1px; text-transform: uppercase;
+            line-height: 1;
+        }
+
+        /* ══ S3C LOGO TEXT — the hero piece ══ */
+        .nav-s3c-wrap {
+            display: flex; align-items: center; gap: 6px;
+            line-height: 1;
+        }
+        /* Pill badge for S3C */
+        .nav-s3c-badge {
+            display: inline-flex; align-items: center;
+            padding: 3px 10px 3px 8px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #f6c847 0%, #ffdf7e 50%, #f6c847 100%);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.15),
+                0 2px 10px rgba(246,200,71,0.45),
+                0 0 20px rgba(246,200,71,0.2);
+            position: relative;
+            overflow: hidden;
+            animation: badge-pulse 3s ease-in-out infinite;
+        }
+        @keyframes badge-pulse {
+            0%, 100% { box-shadow: 0 0 0 1px rgba(255,255,255,0.15), 0 2px 10px rgba(246,200,71,0.45), 0 0 20px rgba(246,200,71,0.2); }
+            50%       { box-shadow: 0 0 0 1px rgba(255,255,255,0.25), 0 2px 16px rgba(246,200,71,0.7), 0 0 32px rgba(246,200,71,0.35); }
+        }
+        /* shimmer sweep over badge */
+        .nav-s3c-badge::after {
+            content: '';
+            position: absolute; top: 0; left: -75%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            animation: badge-shimmer 2.8s ease-in-out infinite 0.5s;
+        }
+        @keyframes badge-shimmer {
+            0%   { left: -75%; }
+            100% { left: 150%; }
+        }
+        /* The actual S3C letters */
+        .nav-s3c-letters {
+            font-family: 'Fraunces', serif;
+            font-size: 20px;
+            font-weight: 900;
+            color: #1a3a1a;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+            position: relative; z-index: 1;
+        }
+        /* green leaf dot accent before C */
+        .nav-s3c-letters em {
+            font-style: normal;
+            color: #0f5c20;
+        }
+        /* subtext beside badge */
+        .nav-s3c-sub {
+            font-size: 10px; font-weight: 700;
+            color: rgba(168,230,188,0.85);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            line-height: 1.3;
+        }
+        .nav-s3c-sub span {
+            display: block;
+            font-style: italic;
+            font-size: 9px;
+            color: rgba(255,255,255,0.45);
+            text-transform: none;
+            letter-spacing: 0.2px;
+        }
+
+        /* ── right controls ── */
+        .nav-role-badge {
+            padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative; z-index: 1;
+        }
+        .badge-student { background: rgba(168,230,188,0.18); color: #a8e6bc; }
+        .badge-tenant  { background: rgba(246,200,71,0.18);  color: #f6c847; }
+        .badge-admin   { background: rgba(138,180,255,0.18); color: #8ab4ff; }
+        .nav-logout {
+            color: rgba(255,255,255,0.5); font-size: 17px;
+            transition: color .2s; position: relative; z-index: 1;
+        }
+        .nav-logout:hover { color: white; }
+        /* MAIN CONTENT */
+        .main-content { padding-top: 76px; padding-bottom: 24px; min-height: 100vh; }
+        /* BOTTOM NAV */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+            background: var(--white);
+            border-top: 1px solid rgba(26,92,56,0.1);
+            display: flex; padding: 8px 0 12px;
+            box-shadow: 0 -4px 20px rgba(26,92,56,0.08);
+        }
+        .nav-item {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; gap: 4px;
+            text-decoration: none; color: #9aa;
+            font-size: 10px; font-weight: 600;
+            padding: 4px 8px; border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .nav-item i { font-size: 20px; transition: all 0.2s; }
+        .nav-item.active, .nav-item:hover { color: var(--forest); }
+        .nav-item.active i { color: var(--leaf); transform: translateY(-2px); }
+        /* FLASH MESSAGES */
+        .flash-container { padding: 12px 16px 0; position: relative; z-index: 50; }
+        .alert {
+            padding: 12px 16px; border-radius: var(--radius-sm);
+            font-size: 14px; font-weight: 500; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 8px;
+            border: 1px solid transparent;
+        }
+        .alert-success { background: var(--foam); color: var(--forest); border-color: var(--mint); }
+        .alert-danger { background: #fff0f0; color: var(--danger); border-color: #ffcccc; }
+        .alert-warning { background: #fff8e8; color: var(--earth); border-color: #fce4a8; }
+        .alert-info { background: #e8f4fd; color: var(--info); border-color: #b3d9f5; }
+        /* CARDS */
+        .card {
+            background: var(--white); border-radius: var(--radius);
+            box-shadow: var(--shadow-sm); overflow: hidden;
+        }
+        .card-header {
+            padding: 16px 20px; border-bottom: 1px solid var(--foam);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .card-title { font-weight: 700; font-size: 16px; color: var(--charcoal); }
+        .card-body { padding: 20px; }
+        /* STAT CARDS */
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px; }
+        .stat-card {
+            background: var(--white); border-radius: var(--radius);
+            padding: 16px; box-shadow: var(--shadow-sm);
+        }
+        .stat-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+            margin-bottom: 12px;
+        }
+        .stat-value { font-size: 24px; font-weight: 800; color: var(--charcoal); }
+        .stat-label { font-size: 12px; color: #888; margin-top: 2px; }
+        /* BUTTONS */
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 20px; border-radius: var(--radius-sm);
+            font-family: inherit; font-size: 14px; font-weight: 600;
+            border: none; cursor: pointer; text-decoration: none; transition: all 0.2s;
+        }
+        .btn-primary { background: var(--forest); color: white; }
+        .btn-primary:hover { background: var(--leaf); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-secondary { background: var(--foam); color: var(--forest); }
+        .btn-secondary:hover { background: var(--mint); }
+        .btn-danger { background: #fff0f0; color: var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: white; }
+        .btn-sm { padding: 6px 14px; font-size: 13px; }
+        .btn-lg { padding: 14px 28px; font-size: 16px; border-radius: var(--radius); }
+        .btn-block { width: 100%; justify-content: center; }
+        /* FORMS */
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+        .form-control {
+            width: 100%; padding: 12px 16px; border-radius: var(--radius-sm);
+            border: 2px solid #e8ede9; background: var(--white);
+            font-family: inherit; font-size: 14px; color: var(--charcoal);
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rgba(45,134,83,0.1); }
+        select.form-control { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23555' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+        /* CHIPS */
+        .chip {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+        }
+        .chip-healthy { background: var(--foam); color: var(--forest); }
+        .chip-category { background: var(--sand); color: var(--earth); }
+        .chip-pending { background: #fff8e8; color: var(--earth); }
+        .chip-processing { background: #e8f4fd; color: var(--info); }
+        .chip-ready { background: var(--foam); color: var(--leaf); }
+        .chip-done { background: #f0f0f0; color: #888; }
+        /* PAGE HEADER */
+        .page-header { padding: 20px 16px 0; }
+        .page-title { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: var(--forest); }
+        .page-subtitle { font-size: 13px; color: #888; margin-top: 2px; }
+        /* SECTION */
+        .section { padding: 16px; }
+        .section-title { font-size: 15px; font-weight: 700; color: var(--charcoal); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+        /* MENU CARD */
+        .menu-card {
+            background: var(--white); border-radius: var(--radius);
+            box-shadow: var(--shadow-sm); overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .menu-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .menu-emoji {
+            background: var(--foam); height: 80px;
+            display: flex; align-items: center; justify-content: center; font-size: 40px;
+        }
+        .menu-info { padding: 12px; }
+        .menu-name { font-weight: 700; font-size: 14px; color: var(--charcoal); margin-bottom: 4px; }
+        .menu-price { font-size: 16px; font-weight: 800; color: var(--forest); }
+        .menu-tenant { font-size: 11px; color: #aaa; }
+        /* LIST ITEMS */
+        .list-item {
+            background: var(--white); border-radius: var(--radius-sm);
+            padding: 14px 16px; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+        .list-icon {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: var(--foam); display: flex; align-items: center;
+            justify-content: center; font-size: 18px; flex-shrink: 0;
+        }
+        /* HERO BANNER */
+        .hero-banner {
+            margin: 16px; border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, var(--forest) 0%, var(--leaf) 100%);
+            padding: 24px; color: white; position: relative; overflow: hidden;
+        }
+        .hero-banner::after {
+            content: ''; position: absolute; top: -30px; right: -30px;
+            width: 120px; height: 120px; background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+        }
+        .hero-banner h2 { font-family: 'Fraunces', serif; font-size: 22px; margin-bottom: 6px; }
+        .hero-banner p { font-size: 13px; opacity: 0.85; }
+        /* EMPTY STATE */
+        .empty-state { text-align: center; padding: 40px 20px; color: #aaa; }
+        .empty-state i { font-size: 48px; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; }
+        /* TABS */
+        .tab-bar {
+            display: flex; gap: 4px; padding: 4px;
+            background: var(--foam); border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+        }
+        .tab-btn {
+            flex: 1; padding: 8px; border-radius: 8px; border: none;
+            font-family: inherit; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; background: transparent; color: #888;
+        }
+        .tab-btn.active { background: var(--white); color: var(--forest); box-shadow: var(--shadow-sm); }
+        /* POINTS BADGE */
+        .points-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(135deg, #f6c847, #e8a020);
+            color: white; padding: 6px 14px; border-radius: 20px;
+            font-size: 14px; font-weight: 700;
+        }
+        /* PROGRESS BAR */
+        .progress-bar {
+            height: 8px; background: var(--foam); border-radius: 4px; overflow: hidden;
+        }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--leaf), var(--sage)); border-radius: 4px; }
+        /* UTILITY */
+        .text-forest { color: var(--forest); }
+        .text-muted { color: #999; font-size: 13px; }
+        .fw-bold { font-weight: 700; }
+        .mb-0 { margin-bottom: 0; }
+        .d-flex { display: flex; }
+        .align-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-8 { gap: 8px; }
+        .mt-8 { margin-top: 8px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .rounded { border-radius: var(--radius-sm); }
+        /* RESPONSIVE */
+        @media (min-width: 640px) {
+            .main-content { max-width: 640px; margin: 0 auto; }
+            .bottom-nav { max-width: 640px; left: 50%; transform: translateX(-50%); }
+            .top-nav { padding: 0 32px; }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- TOP NAV -->
+    <nav class="top-nav">
+        <!-- Left: Logo + School + S3C Brand -->
+        <a href="{{ url_for('dashboard') }}" class="nav-brand" title="Kembali ke Menu Utama">
+            <img src="{{ url_for('static', filename='img/logo_sekolah.png') }}" class="nav-school-logo" alt="Logo">
+            <div class="nav-school-info">
+                <div class="nav-school-name">SMA Negeri 2 Wates</div>
+                <div class="nav-s3c-wrap">
+                    <!-- Gold pill badge -->
+                    <div class="nav-s3c-badge">
+                        <span class="nav-s3c-letters">S3<em>C</em></span>
+                    </div>
+                    <!-- Tagline -->
+                    <div class="nav-s3c-sub">
+                        Smart Canteen
+                        <span>Sustainable · School</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <!-- Right: Role badge + Logout -->
+        <div style="display:flex;align-items:center;gap:8px;">
+            {% if session.role %}
+                <span class="nav-role-badge badge-{{ session.role }}">
+                    {% if session.role == 'student' %}🎓 Murid
+                    {% elif session.role == 'tenant' %}🍽️ Tenant
+                    {% else %}⚙️ Admin{% endif %}
+                </span>
+                <a href="{{ url_for('logout') }}" class="nav-logout" title="Keluar"><i class="fas fa-sign-out-alt"></i></a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT (flash messages live inside here so they don't hide under nav) -->
+    <div class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div style="padding: 8px 16px 0;">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {% if category == 'success' %}<i class="fas fa-check-circle"></i>
+                {% elif category == 'danger' %}<i class="fas fa-times-circle"></i>
+                {% elif category == 'warning' %}<i class="fas fa-exclamation-circle"></i>
+                {% else %}<i class="fas fa-info-circle"></i>{% endif %}
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- BOTTOM NAV -->
+    {% if session.role %}
+    <nav class="bottom-nav">
+        {% if session.role == 'student' %}
+            <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-home"></i><span>Beranda</span>
+            </a>
+            <a href="{{ url_for('menu_catalog') }}" class="nav-item {% if request.endpoint in ['menu_catalog'] %}active{% endif %}">
+                <i class="fas fa-utensils"></i><span>Menu</span>
+            </a>
+            <a href="{{ url_for('order') }}" class="nav-item {% if request.endpoint in ['order','my_orders'] %}active{% endif %}">
+                <i class="fas fa-shopping-bag"></i><span>Pesan</span>
+            </a>
+            <a href="{{ url_for('waste_log') }}" class="nav-item {% if request.endpoint == 'waste_log' %}active{% endif %}">
+                <i class="fas fa-leaf"></i><span>Waste Log</span>
+            </a>
+            <a href="{{ url_for('education') }}" class="nav-item {% if request.endpoint in ['education','education_detail'] %}active{% endif %}">
+                <i class="fas fa-book-open"></i><span>Edukasi</span>
+            </a>
+        {% elif session.role == 'tenant' %}
+            <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-home"></i><span>Beranda</span>
+            </a>
+            <a href="{{ url_for('tenant_menus') }}" class="nav-item {% if request.endpoint in ['tenant_menus','tenant_add_menu','tenant_edit_menu'] %}active{% endif %}">
+                <i class="fas fa-clipboard-list"></i><span>Menu</span>
+            </a>
+            <a href="{{ url_for('tenant_orders') }}" class="nav-item {% if request.endpoint == 'tenant_orders' %}active{% endif %}">
+                <i class="fas fa-bell"></i><span>Pesanan</span>
+            </a>
+        {% elif session.role == 'admin' %}
+            <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-home"></i><span>Beranda</span>
+            </a>
+            <a href="{{ url_for('admin_menus') }}" class="nav-item {% if request.endpoint in ['admin_menus','admin_add_menu','admin_edit_menu'] %}active{% endif %}">
+                <i class="fas fa-utensils"></i><span>Menu</span>
+            </a>
+            <a href="{{ url_for('admin_orders') }}" class="nav-item {% if request.endpoint in ['admin_orders'] %}active{% endif %}">
+                <i class="fas fa-receipt"></i><span>Pesanan</span>
+            </a>
+            <a href="{{ url_for('admin_users') }}" class="nav-item {% if request.endpoint in ['admin_users','admin_edit_user'] %}active{% endif %}">
+                <i class="fas fa-users"></i><span>Users</span>
+            </a>
+            <a href="{{ url_for('admin_marketplace') }}" class="nav-item {% if request.endpoint in ['admin_marketplace','admin_add_marketplace','admin_edit_marketplace'] %}active{% endif %}">
+                <i class="fas fa-store"></i><span>Marketplace</span>
+            </a>
+            <a href="{{ url_for('admin_education') }}" class="nav-item {% if request.endpoint in ['admin_education','admin_edit_education'] %}active{% endif %}">
+                <i class="fas fa-book-open"></i><span>Edukasi</span>
+            </a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    {% block extra_scripts %}{% endblock %}
+
+    <script>
+        // Always scroll to top on page load
+        window.scrollTo(0, 0);
+
+        // Auto-dismiss flash alerts after 4 seconds
+        setTimeout(function() {
+            document.querySelectorAll('.alert').forEach(function(el) {
+                el.style.transition = 'opacity 0.5s';
+                el.style.opacity = '0';
+                setTimeout(function() { el.style.display = 'none'; }, 500);
+            });
+        }, 4000);
+
+        // Service Worker registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('S3C Service Worker registered'))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>

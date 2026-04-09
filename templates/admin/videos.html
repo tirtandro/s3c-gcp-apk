@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}Kelola Video Edukasi - S3C{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 16px 0;">
+    <div>
+        <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#1a5c38;">🎬 Education Hub</div>
+        <div style="font-size:13px;color:#888;">{{ videos|length }} video tersedia</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a href="{{ url_for('edu_hub') }}" target="_blank" class="btn btn-secondary btn-sm">
+            <i class="fas fa-external-link-alt"></i> Lihat Hub
+        </a>
+        <a href="{{ url_for('admin_add_video') }}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> Tambah
+        </a>
+    </div>
+</div>
+
+<!-- Info banner -->
+<div style="margin:12px 16px 0;background:linear-gradient(135deg,#1a3a6e,#3a8fd4);border-radius:16px;padding:16px 20px;color:white;">
+    <div style="display:flex;align-items:center;gap:12px;">
+        <div style="font-size:32px;">🌍</div>
+        <div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:3px;">Sustainable Education Hub</div>
+            <div style="font-size:12px;opacity:0.85;">Video dapat diakses publik tanpa login. Paste URL YouTube biasa — sistem otomatis mengonversinya ke format embed.</div>
+        </div>
+    </div>
+</div>
+
+<div style="padding:16px 16px 80px;">
+    {% if videos %}
+    {% for video in videos %}
+    <div style="background:white;border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(26,92,56,0.08);display:flex;gap:0;">
+        <!-- Thumbnail -->
+        <div style="width:100px;flex-shrink:0;position:relative;background:#0d2818;">
+            <iframe src="{{ video.youtube_url }}" style="width:100%;height:100%;border:none;pointer-events:none;" loading="lazy"></iframe>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.2);">
+                <div style="width:28px;height:28px;background:rgba(255,255,255,0.9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#1a5c38;"><i class="fas fa-play" style="margin-left:2px;"></i></div>
+            </div>
+        </div>
+        <!-- Info -->
+        <div style="flex:1;padding:12px;min-width:0;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                <div style="min-width:0;">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
+                        <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;
+                            {% if video.category=='lingkungan' %}background:#e8f5ee;color:#1a5c38;
+                            {% elif video.category=='gizi' %}background:#e8f4fd;color:#1a56c4;
+                            {% elif video.category=='zerowaste' %}background:#fff0f8;color:#b04090;
+                            {% elif video.category=='pertanian' %}background:#f0fff0;color:#2d6a2d;
+                            {% else %}background:#f5e6d3;color:#8b6914;{% endif %}">
+                            {{ video.category.replace('zerowaste','Zero Waste').replace('pertanian','Pertanian').replace('lingkungan','Lingkungan').replace('gizi','Gizi').replace('umum','Umum') }}
+                        </span>
+                        {% if not video.is_published %}
+                        <span style="font-size:10px;background:#fff0f0;color:#e05252;padding:2px 8px;border-radius:20px;font-weight:700;">⚫ Draft</span>
+                        {% endif %}
+                    </div>
+                    <div style="font-weight:700;font-size:13px;color:#1e2a1f;line-height:1.3;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ video.title }}</div>
+                    <div style="font-size:11px;color:#aaa;">{{ video.created_at | strftime('%d %b %Y') }}</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">
+                    <a href="{{ url_for('admin_edit_video', video_id=video.id) }}" class="btn btn-secondary btn-sm" style="padding:5px 10px;">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <form method="POST" action="{{ url_for('admin_delete_video', video_id=video.id) }}" onsubmit="return confirm('Hapus video ini?')">
+                        <button type="submit" class="btn btn-danger btn-sm" style="padding:5px 10px;width:100%;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state" style="padding:48px 20px;">
+        <i class="fas fa-film"></i>
+        <p>Belum ada video. <a href="{{ url_for('admin_add_video') }}" style="color:#2d8653;font-weight:700;">Tambah video pertama!</a></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

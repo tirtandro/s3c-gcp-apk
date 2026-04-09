@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Marketplace - S3C{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;padding:16px;">
+    <div>
+        <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#1a5c38;">♻️ Marketplace</div>
+        <div style="font-size:13px;color:#888;">Kelola produk limbah organik</div>
+    </div>
+    <a href="{{ url_for('admin_add_marketplace') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus"></i> Tambah
+    </a>
+</div>
+
+<!-- Banner -->
+<div style="margin:0 16px 16px;background:linear-gradient(135deg,#4a3728,#c4956a);border-radius:20px;padding:20px;color:white;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-20px;right:-20px;font-size:80px;opacity:0.12;">♻️</div>
+    <div style="font-size:12px;opacity:0.8;margin-bottom:4px;">Ekonomi Sirkular S3C</div>
+    <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;margin-bottom:6px;">{{ items|length }} Produk Aktif</div>
+    <div style="font-size:12px;opacity:0.8;">Dari sisa kantin menjadi produk bernilai</div>
+</div>
+
+<div style="padding:0 16px 80px;">
+    {% if items %}
+    {% for item in items %}
+    <div style="background:white;border-radius:16px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(26,92,56,0.08);">
+        <div style="display:flex;align-items:center;gap:12px;padding:14px;">
+            <div style="width:60px;height:60px;border-radius:12px;overflow:hidden;flex-shrink:0;background:#f5e6d3;display:flex;align-items:center;justify-content:center;">
+                {% if item.image_file %}
+                <img src="{{ item.image_file }}" style="width:100%;height:100%;object-fit:cover;">
+                {% else %}
+                <span style="font-size:28px;">{{ item.image_emoji }}</span>
+                {% endif %}
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <div style="font-weight:700;font-size:14px;color:#1e2a1f;">{{ item.name }}</div>
+                    {% if not item.is_available %}<span style="font-size:10px;color:#e05252;background:#fff0f0;padding:2px 6px;border-radius:10px;font-weight:700;">Nonaktif</span>{% endif %}
+                </div>
+                <span style="font-size:10px;background:#f5e6d3;color:#8b6914;padding:2px 8px;border-radius:10px;font-weight:700;">{{ item.category.replace('_',' ').title() }}</span>
+                <div style="font-size:12px;color:#888;margin-top:2px;">Stok: {{ item.stock }} {{ item.unit }}</div>
+                <div style="font-weight:800;color:#8b6914;font-size:15px;">Rp{{ "{:,.0f}".format(item.price) }} / {{ item.unit }}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <a href="{{ url_for('admin_edit_marketplace', item_id=item.id) }}" class="btn btn-secondary btn-sm" style="padding:6px 12px;">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <form method="POST" action="{{ url_for('admin_delete_marketplace', item_id=item.id) }}" onsubmit="return confirm('Hapus produk ini?')">
+                    <button type="submit" class="btn btn-danger btn-sm" style="padding:6px 12px;width:100%;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% if item.description %}
+        <div style="padding:0 14px 12px;font-size:12px;color:#888;">{{ item.description[:100] }}...</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-store"></i>
+        <p>Belum ada produk. <a href="{{ url_for('admin_add_marketplace') }}" style="color:#2d8653;font-weight:700;">Tambah produk pertama!</a></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

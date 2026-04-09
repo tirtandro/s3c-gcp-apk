@@ -1,0 +1,52 @@
+name: Build S3C Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli
+
+      - name: Build APK with Bubblewrap
+        run: |
+          # Create Bubblewrap config to skip interactive path setup
+          mkdir -p ~/.bubblewrap
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_SDK_ROOT\"}" > ~/.bubblewrap/config.json
+          
+          cd android
+          
+          # Generate a temporary signing key if it doesn't exist
+          if [ ! -f "android.keystore" ]; then
+            keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass s3cpassword -keypass s3cpassword -dname "CN=S3C, OU=App, O=School, L=Wates, S=DIY, C=ID"
+          fi
+          
+          # Run build using the manifest
+          # We use yes to accept any standard prompts
+          yes | bubblewrap build --clean
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: s3cpassword
+          BUBBLEWRAP_KEY_PASSWORD: s3cpassword
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: S3C-Release-APK
+          path: android/*.apk

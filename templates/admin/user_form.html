@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Edit User - S3C{% endblock %}
+{% block content %}
+<div style="padding:16px 16px 0;">
+    <a href="{{ url_for('admin_users') }}" style="display:inline-flex;align-items:center;gap:6px;color:#1a5c38;font-size:14px;font-weight:600;text-decoration:none;">
+        <i class="fas fa-arrow-left"></i> Kembali
+    </a>
+</div>
+<div style="padding:16px;">
+    <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:#1a5c38;margin-bottom:16px;">
+        ✏️ Edit Akun: {{ user.name }}
+    </div>
+
+    <div style="background:#fff8e8;border-radius:12px;padding:12px 16px;margin-bottom:16px;border-left:4px solid #f6c847;">
+        <div style="font-size:12px;font-weight:700;color:#8b6914;margin-bottom:2px;">⚠️ Hati-hati</div>
+        <div style="font-size:12px;color:#555;">Perubahan di sini berpengaruh langsung pada akses login user tersebut. Kosongkan field password jika tidak ingin mengubah password.</div>
+    </div>
+
+    <form method="POST">
+        <div class="form-group">
+            <label class="form-label">Nama Lengkap *</label>
+            <input type="text" name="name" class="form-control" value="{{ user.name }}" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Username *</label>
+            <input type="text" name="username" class="form-control" value="{{ user.username }}" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Password Baru <span style="color:#aaa;font-weight:400;">(kosongkan jika tidak diubah)</span></label>
+            <input type="password" name="password" class="form-control" placeholder="Ketik password baru...">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Role *</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px;">
+                {% for r,label,emoji in [('student','Murid','🎓'),('tenant','Tenant','🍽️'),('admin','Admin','⚙️')] %}
+                <label style="cursor:pointer;text-align:center;">
+                    <input type="radio" name="role" value="{{ r }}" {% if user.role==r %}checked{% endif %} style="display:none;" class="role-radio" id="role_{{ r }}">
+                    <div class="role-opt" style="border:2px solid #e8ede9;border-radius:12px;padding:10px 6px;transition:all .2s;{% if user.role==r %}border-color:#1a5c38;background:#e8f5ee;{% endif %}">
+                        <div style="font-size:24px;">{{ emoji }}</div>
+                        <div style="font-size:12px;font-weight:700;color:#555;margin-top:4px;">{{ label }}</div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="kelas_field" class="form-group" style="{% if user.role != 'student' %}display:none;{% endif %}">
+            <label class="form-label">Kelas</label>
+            <select name="kelas" class="form-control">
+                <option value="">-- Pilih kelas --</option>
+                {% for k in ['X A','X B','X C','X D','X E','XI A','XI B','XI C','XI D','XI E','XII A','XII B','XII C','XII D','XII E'] %}
+                <option {% if user.kelas==k %}selected{% endif %}>{{ k }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div id="tenant_name_field" class="form-group" style="{% if user.role != 'tenant' %}display:none;{% endif %}">
+            <label class="form-label">Nama Warung / Stand</label>
+            <input type="text" name="tenant_name" class="form-control" value="{{ user.tenant_name or '' }}" placeholder="Nama warung">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg"><i class="fas fa-save"></i> Simpan Perubahan</button>
+    </form>
+</div>
+<script>
+document.querySelectorAll('.role-radio').forEach(r => r.addEventListener('change', function(){
+    document.querySelectorAll('.role-opt').forEach(o=>{o.style.borderColor='#e8ede9';o.style.background='white';});
+    this.nextElementSibling.style.borderColor='#1a5c38'; this.nextElementSibling.style.background='#e8f5ee';
+    document.getElementById('kelas_field').style.display = this.value==='student'?'block':'none';
+    document.getElementById('tenant_name_field').style.display = this.value==='tenant'?'block':'none';
+}));
+</script>
+{% endblock %}

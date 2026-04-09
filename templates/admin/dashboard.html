@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Admin - S3C{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block content %}
+<div style="background:linear-gradient(135deg,#1a56c4,#3a8fd4);margin:16px;border-radius:24px;padding:24px;color:white;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-30px;right:-30px;font-size:120px;opacity:0.1;">⚙️</div>
+    <div style="font-size:13px;opacity:0.8;margin-bottom:4px;">Dashboard Monitoring</div>
+    <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;">S3C Admin Panel</div>
+    <div style="font-size:12px;opacity:0.7;margin-top:2px;">{{ user.name }}</div>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#e8f5ee;">🎓</div>
+        <div class="stat-value">{{ total_students }}</div>
+        <div class="stat-label">Total Murid</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#fff8e8;">🛍️</div>
+        <div class="stat-value">{{ total_orders }}</div>
+        <div class="stat-label">Total Pesanan</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#e8f5ee;">🌱</div>
+        <div class="stat-value">{{ total_waste_logs }}</div>
+        <div class="stat-label">Waste Logs</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#f5e6d3;">♻️</div>
+        <div class="stat-value">{{ total_marketplace }}</div>
+        <div class="stat-label">Produk Marketplace</div>
+    </div>
+</div>
+
+<!-- Quick nav -->
+<div class="section" style="padding-top:0;">
+    <div class="grid-2">
+        <a href="{{ url_for('admin_analytics') }}" style="text-decoration:none;">
+            <div style="background:linear-gradient(135deg,#1a56c4,#3a8fd4);border-radius:16px;padding:16px;color:white;text-align:center;">
+                <div style="font-size:26px;margin-bottom:4px;">📊</div>
+                <div style="font-weight:700;font-size:12px;">Analitik</div>
+            </div>
+        </a>
+        <a href="{{ url_for('admin_menus') }}" style="text-decoration:none;">
+            <div style="background:linear-gradient(135deg,#2d6a4f,#40916c);border-radius:16px;padding:16px;color:white;text-align:center;">
+                <div style="font-size:26px;margin-bottom:4px;">🍽️</div>
+                <div style="font-weight:700;font-size:12px;">Kelola Menu</div>
+            </div>
+        </a>
+        <a href="{{ url_for('admin_orders') }}" style="text-decoration:none;">
+            <div style="background:linear-gradient(135deg,#7b2d8b,#9b59b6);border-radius:16px;padding:16px;color:white;text-align:center;">
+                <div style="font-size:26px;margin-bottom:4px;">📦</div>
+                <div style="font-weight:700;font-size:12px;">Semua Pesanan</div>
+            </div>
+        </a>
+        <a href="{{ url_for('admin_users') }}" style="text-decoration:none;">
+            <div style="background:linear-gradient(135deg,#b5451b,#e07840);border-radius:16px;padding:16px;color:white;text-align:center;">
+                <div style="font-size:26px;margin-bottom:4px;">👥</div>
+                <div style="font-weight:700;font-size:12px;">Kelola Users</div>
+            </div>
+        </a>
+        <a href="{{ url_for('admin_marketplace') }}" style="text-decoration:none;">
+            <div style="background:linear-gradient(135deg,#4a3728,#8b6914);border-radius:16px;padding:16px;color:white;text-align:center;">
+                <div style="font-size:26px;margin-bottom:4px;">♻️</div>
+                <div style="font-weight:700;font-size:12px;">Marketplace</div>
+            </div>
+        </a>
+        <a href="{{ url_for('admin_education') }}" style="text-decoration:none;">
+            <div style="background:linear-gradient(135deg,#1a5c38,#2d8653);border-radius:16px;padding:16px;color:white;text-align:center;">
+                <div style="font-size:26px;margin-bottom:4px;">📚</div>
+                <div style="font-weight:700;font-size:12px;">Pojok Edukasi</div>
+            </div>
+        </a>
+        <a href="{{ url_for('admin_videos') }}" style="text-decoration:none;grid-column:span 2;">
+            <div style="background:linear-gradient(135deg,#1a3a6e,#3a8fd4);border-radius:16px;padding:14px 18px;color:white;display:flex;align-items:center;gap:12px;">
+                <div style="font-size:32px;">🎬</div>
+                <div>
+                    <div style="font-weight:800;font-size:14px;">Sustainable Education Hub</div>
+                    <div style="font-size:12px;opacity:.8;">{{ total_videos }} video publik</div>
+                </div>
+                <div style="margin-left:auto;font-size:18px;opacity:.7;">→</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Waste Chart -->
+<div class="section" style="padding-top:0;">
+    <div class="card">
+        <div class="card-header"><div class="card-title">🌱 Distribusi Food Waste</div></div>
+        <div class="card-body">
+            <canvas id="wasteChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Top menus -->
+<div class="section" style="padding-top:0;">
+    <div class="card">
+        <div class="card-header"><div class="card-title">🏆 Menu Terlaris</div></div>
+        <div class="card-body" style="padding:12px 16px;">
+            {% for m in top_menus %}
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;{% if not loop.last %}border-bottom:1px solid #f0f4f1;{% endif %}">
+                <div style="width:28px;height:28px;background:{% if loop.index == 1 %}linear-gradient(135deg,#f6c847,#e8a020){% elif loop.index == 2 %}linear-gradient(135deg,#c0c0c0,#a0a0a0){% elif loop.index == 3 %}linear-gradient(135deg,#cd7f32,#a06020){% else %}#f0f0f0{% endif %};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:{% if loop.index <= 3 %}white{% else %}#888{% endif %};">{{ loop.index }}</div>
+                <div style="font-size:18px;">{{ m[1] }}</div>
+                <div style="flex:1;font-size:13px;font-weight:600;">{{ m[0] }}</div>
+                <div style="font-weight:800;color:#1a5c38;font-size:14px;">{{ m[2] }}x</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+const wasteData = {{ waste_data | safe }};
+const labels = { 'habis': 'Habis 😋', 'none': 'Tak ada sisa ✅', 'sedikit': 'Sedikit 🤏', 'setengah': 'Setengah 😬', 'banyak': 'Banyak 😔' };
+const colors = ['#2d8653','#4caf78','#f6c847','#e8a020','#e05252'];
+const keys = Object.keys(wasteData);
+
+new Chart(document.getElementById('wasteChart'), {
+    type: 'doughnut',
+    data: {
+        labels: keys.map(k => labels[k] || k),
+        datasets: [{ data: keys.map(k => wasteData[k]), backgroundColor: colors, borderWidth: 0 }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { family: 'Plus Jakarta Sans', size: 12 }, padding: 12 } } }
+    }
+});
+</script>
+{% endblock %}

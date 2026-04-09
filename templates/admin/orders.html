@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Semua Pesanan - Admin S3C{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title">📦 Semua Pesanan</div>
+    <div class="page-subtitle">Monitor & kelola pesanan dari seluruh kantin</div>
+</div>
+
+<!-- Filters -->
+<div style="padding:0 16px 12px;display:flex;gap:8px;overflow-x:auto;flex-wrap:wrap;">
+    {% for s,label in [('all','Semua'),('pending','Pending'),('processing','Diproses'),('ready','Siap'),('done','Selesai')] %}
+    <a href="{{ url_for('admin_orders', status=s, tenant=tenant_filter) }}"
+       style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;
+              {% if status_filter==s %}background:#1a5c38;color:white;{% else %}background:white;color:#555;border:2px solid #e8ede9;{% endif %}">
+        {{ label }}
+    </a>
+    {% endfor %}
+</div>
+<div style="padding:0 16px 12px;display:flex;gap:8px;overflow-x:auto;">
+    <a href="{{ url_for('admin_orders', status=status_filter, tenant='all') }}"
+       style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;
+              {% if tenant_filter=='all' %}background:#8b6914;color:white;{% else %}background:#fff8e8;color:#8b6914;border:2px solid #f6c847;{% endif %}">
+        🍽️ Semua Kantin
+    </a>
+    {% for t in tenants %}
+    <a href="{{ url_for('admin_orders', status=status_filter, tenant=t.id) }}"
+       style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;
+              {% if tenant_filter|string==t.id|string %}background:#8b6914;color:white;{% else %}background:#fff8e8;color:#8b6914;border:2px solid #f6c847;{% endif %}">
+        {{ t.tenant_name or t.name }}
+    </a>
+    {% endfor %}
+</div>
+
+<div style="padding:0 16px 80px;">
+    {% if orders %}
+    <div style="font-size:13px;color:#888;margin-bottom:10px;">{{ orders|length }} pesanan</div>
+    {% for order in orders %}
+    <div style="background:white;border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(26,92,56,0.07);">
+        <div style="padding:12px 14px;border-bottom:1px solid #f0f4f1;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                    <div style="font-weight:700;font-size:14px;">#{{ order.id }} — {{ order.student_name }}</div>
+                    <div style="font-size:11px;color:#888;">{{ order.kelas or '-' }} · {{ order.created_at | strftime('%d %b %Y, %H:%M') }}</div>
+                    <div style="font-size:12px;color:#8b6914;font-weight:600;margin-top:2px;">🍽️ {{ order.tenant_name or order.tname }}</div>
+                </div>
+                <span class="chip chip-{{ order.status }}">
+                    {% if order.status=='pending' %}⏳ Pending
+                    {% elif order.status=='processing' %}🔄 Diproses
+                    {% elif order.status=='ready' %}✅ Siap
+                    {% else %}✔️ Selesai{% endif %}
+                </span>
+            </div>
+        </div>
+        <div style="padding:10px 14px;border-bottom:1px solid #f0f4f1;">
+            {% for item in order_items_map.get(order.id, []) %}
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0;">
+                <span>{{ item.quantity }}× {{ item.mname }}</span>
+                <span style="font-weight:600;">Rp{{ "{:,.0f}".format(item.subtotal) }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        <div style="padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-weight:800;color:#1a5c38;font-size:15px;">Rp{{ "{:,.0f}".format(order.total_price) }}</div>
+            {% if order.status != 'done' %}
+            <form method="POST" action="{{ url_for('admin_update_order', order_id=order.id) }}" style="display:flex;gap:6px;">
+                {% if order.status == 'pending' %}
+                    <button name="status" value="processing" class="btn btn-secondary btn-sm">🔄 Proses</button>
+                    <button name="status" value="done" class="btn btn-primary btn-sm">✔️ Selesai</button>
+                {% elif order.status == 'processing' %}
+                    <button name="status" value="ready" class="btn btn-primary btn-sm">✅ Siap</button>
+                {% elif order.status == 'ready' %}
+                    <button name="status" value="done" class="btn btn-secondary btn-sm">✔️ Selesai</button>
+                {% endif %}
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada pesanan</p></div>
+    {% endif %}
+</div>
+{% endblock %}

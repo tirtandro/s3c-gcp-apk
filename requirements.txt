@@ -1,0 +1,7 @@
+flask
+flask-sqlalchemy
+werkzeug
+Pillow
+gunicorn
+psycopg2-binary
+python-dotenv

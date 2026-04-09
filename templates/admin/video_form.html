@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit' if video else 'Tambah' }} Video - S3C{% endblock %}
+{% block content %}
+<div style="padding:16px 16px 0;">
+    <a href="{{ url_for('admin_videos') }}" style="display:inline-flex;align-items:center;gap:6px;color:#1a5c38;font-size:14px;font-weight:600;text-decoration:none;">
+        <i class="fas fa-arrow-left"></i> Kembali
+    </a>
+</div>
+<div style="padding:16px;">
+    <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#1a5c38;margin-bottom:4px;">
+        {{ '✏️ Edit Video' if video else '🎬 Tambah Video Baru' }}
+    </div>
+    <div style="font-size:13px;color:#888;margin-bottom:20px;">Sematan video YouTube untuk Sustainable Education Hub</div>
+
+    <!-- URL Guide -->
+    <div style="background:linear-gradient(135deg,#e8f4fd,#d4e8fb);border-radius:14px;padding:14px 16px;margin-bottom:20px;border-left:4px solid #3a8fd4;">
+        <div style="font-size:13px;font-weight:700;color:#1a56c4;margin-bottom:6px;">📎 Format URL yang diterima:</div>
+        <div style="font-size:12px;color:#555;line-height:1.8;">
+            ✅ https://youtu.be/<b>VIDEO_ID</b><br>
+            ✅ https://www.youtube.com/watch?v=<b>VIDEO_ID</b><br>
+            ✅ https://www.youtube.com/embed/<b>VIDEO_ID</b><br>
+            <span style="color:#888;">Sistem otomatis mengonversi ke format embed.</span>
+        </div>
+    </div>
+
+    <form method="POST">
+        <div class="form-group">
+            <label class="form-label">Judul Video *</label>
+            <input type="text" name="title" class="form-control" value="{{ video.title if video else '' }}"
+                   required placeholder="Contoh: Cara Membuat Kompos dari Sisa Dapur">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">URL YouTube *</label>
+            <input type="text" name="youtube_url" class="form-control"
+                   value="{% if video %}{{ video.youtube_url | replace('https://www.youtube.com/embed/', 'https://youtu.be/') }}{% endif %}"
+                   required placeholder="https://youtu.be/xxxxx atau youtube.com/watch?v=xxxxx"
+                   id="youtubeInput">
+            <div style="font-size:11px;color:#888;margin-top:4px;">Preview embed akan muncul setelah kamu paste URL</div>
+        </div>
+
+        <!-- Live preview -->
+        <div id="previewWrap" style="display:none;margin-bottom:16px;">
+            <div style="font-size:13px;font-weight:600;color:#1a5c38;margin-bottom:8px;">👁️ Preview:</div>
+            <div style="border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.15);">
+                <iframe id="previewFrame" style="width:100%;aspect-ratio:16/9;border:none;" allowfullscreen></iframe>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Kategori</label>
+            <select name="category" class="form-control">
+                {% for cat, label in [('lingkungan','🌍 Lingkungan'),('gizi','🥗 Gizi & Kesehatan'),('zerowaste','♻️ Zero Waste'),('pertanian','🌾 Pertanian'),('umum','📚 Umum')] %}
+                <option value="{{ cat }}" {% if video and video.category==cat %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Deskripsi (opsional)</label>
+            <textarea name="description" class="form-control" rows="4"
+                      placeholder="Ringkasan singkat tentang isi video ini...">{{ video.description if video else '' }}</textarea>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+            <input type="checkbox" name="is_published" id="pub"
+                   {% if not video or video.is_published %}checked{% endif %}
+                   style="width:18px;height:18px;accent-color:#1a5c38;">
+            <label for="pub" style="font-size:14px;font-weight:600;color:#1a5c38;cursor:pointer;">
+                Publis sekarang (tampil di Education Hub)
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" style="background:linear-gradient(135deg,#1a3a6e,#3a8fd4);">
+            <i class="fas fa-save"></i> {{ 'Simpan Perubahan' if video else 'Tambah Video' }}
+        </button>
+    </form>
+</div>
+
+<script>
+function extractYoutubeId(url) {
+    url = url.trim();
+    const patterns = [
+        /youtu\.be\/([A-Za-z0-9_-]{11})/,
+        /[?&]v=([A-Za-z0-9_-]{11})/,
+        /embed\/([A-Za-z0-9_-]{11})/
+    ];
+    for (const p of patterns) {
+        const m = url.match(p);
+        if (m) return m[1];
+    }
+    return null;
+}
+
+const input = document.getElementById('youtubeInput');
+const previewWrap = document.getElementById('previewWrap');
+const previewFrame = document.getElementById('previewFrame');
+
+function updatePreview() {
+    const vid = extractYoutubeId(input.value);
+    if (vid) {
+        previewFrame.src = `https://www.youtube.com/embed/${vid}?rel=0`;
+        previewWrap.style.display = 'block';
+    } else {
+        previewWrap.style.display = 'none';
+    }
+}
+
+input.addEventListener('input', updatePreview);
+input.addEventListener('paste', () => setTimeout(updatePreview, 100));
+
+// Run on load if editing
+if (input.value) updatePreview();
+</script>
+{% endblock %}

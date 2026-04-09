@@ -1,0 +1,33 @@
+{
+  "packageId": "com.s3c.smartcanteen",
+  "host": "s3c-service-3bbvxxtsja-et.a.run.app",
+  "name": "S3C Smart Canteen",
+  "launcherName": "S3C",
+  "description": "Smart Sustainable School Canteen - SMA Negeri 2 Wates",
+  "iconUrl": "https://s3c-service-3bbvxxtsja-et.a.run.app/static/img/logo_sekolah.png",
+  "maskableIconUrl": "https://s3c-service-3bbvxxtsja-et.a.run.app/static/img/logo_sekolah.png",
+  "startUrl": "/",
+  "themeColor": "#1a5c38",
+  "backgroundColor": "#1a5c38",
+  "enableNotifications": false,
+  "shortcuts": [],
+  "webManifestUrl": "https://s3c-service-3bbvxxtsja-et.a.run.app/manifest.json",
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "fingerprints": [],
+  "generatorApp": "bubblewrap-cli",
+  "appVersionCode": 1,
+  "appVersionName": "1.0.0",
+  "orientation": "portrait",
+  "display": "standalone",
+  "appBarColor": "#1a5c38",
+  "navigationColor": "#ffffff",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#00000000",
+  "navigationDividerColorDark": "#00000000",
+  "splashScreenFadeOutDuration": 300,
+  "isPreloadCheckEnabled": true,
+  "features": {}
+}

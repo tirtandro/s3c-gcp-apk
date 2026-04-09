@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Food Waste Log - S3C{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title">🌱 Food Waste Log</div>
+    <div class="page-subtitle">Catat sisa makananmu & kumpulkan poin hijau</div>
+</div>
+
+<!-- Points display -->
+<div style="margin:16px;">
+    <div style="background:linear-gradient(135deg,#8b6914,#c4956a);border-radius:20px;padding:20px;color:white;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-20px;right:-20px;font-size:80px;opacity:0.15;">🌟</div>
+        <div style="font-size:12px;opacity:0.85;margin-bottom:4px;">Total Poin Hijaumu</div>
+        <div style="font-family:'Fraunces',serif;font-size:40px;font-weight:700;">{{ total_points }}</div>
+        <div style="font-size:12px;opacity:0.8;margin-top:4px;">poin eco-warrior 🌿</div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+            <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:6px 12px;font-size:12px;">🌱 Habis = +10 pts</div>
+            <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:6px 12px;font-size:12px;">🌿 Sedikit = +7 pts</div>
+            <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:6px 12px;font-size:12px;">🍃 Setengah = +3 pts</div>
+        </div>
+    </div>
+</div>
+
+<!-- Log Form -->
+<div class="section" style="padding-top:0;">
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">📝 Catat Sisa Makanan</div>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="form-group">
+                    <label class="form-label">Menu yang dimakan (opsional)</label>
+                    <select name="menu_id" class="form-control">
+                        <option value="">-- Pilih menu --</option>
+                        {% for menu in menus %}
+                        <option value="{{ menu.id }}">{{ menu.image_emoji }} {{ menu.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Seberapa banyak sisa makananmu?</label>
+                    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">
+                        {% for val, label, emoji, pts in [('habis','Habis','😋',10),('none','Tak ada sisa','✅',10),('sedikit','Sedikit','🤏',7),('setengah','Setengah','😬',3),('banyak','Banyak','😔',0)] %}
+                        <label style="cursor:pointer;text-align:center;">
+                            <input type="radio" name="waste_level" value="{{ val }}" {% if loop.first %}checked{% endif %} style="display:none;" class="waste-radio">
+                            <div class="waste-option" style="border:2px solid #e8ede9;border-radius:12px;padding:10px 4px;transition:all 0.2s;">
+                                <div style="font-size:24px;">{{ emoji }}</div>
+                                <div style="font-size:10px;font-weight:600;color:#555;margin-top:4px;">{{ label }}</div>
+                                <div style="font-size:10px;color:#888;">+{{ pts }}pts</div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Alasan (opsional)</label>
+                    <select name="waste_reason" class="form-control">
+                        <option value="">-- Pilih alasan --</option>
+                        <option>Sudah kenyang</option>
+                        <option>Tidak enak</option>
+                        <option>Porsi terlalu besar</option>
+                        <option>Terburu-buru</option>
+                        <option>Makanan dingin/basi</option>
+                        <option>Lainnya</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block btn-lg">
+                    <i class="fas fa-leaf"></i> Simpan & Dapatkan Poin
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Log History -->
+<div class="section" style="padding-top:0;">
+    <div class="section-title">📊 Riwayat Log</div>
+    {% if logs %}
+    {% for log in logs %}
+    <div class="list-item">
+        <div style="font-size:28px;width:44px;text-align:center;flex-shrink:0;">
+            {% if log.waste_level in ['habis','none'] %}😋
+            {% elif log.waste_level == 'sedikit' %}🤏
+            {% elif log.waste_level == 'setengah' %}😬
+            {% else %}😔{% endif %}
+        </div>
+        <div style="flex:1;">
+            <div style="font-weight:600;font-size:14px;">
+                {% if log.menu %}{{ log.menu.name }}{% else %}Makanan umum{% endif %}
+            </div>
+            <div style="font-size:12px;color:#888;">
+                Sisa: <b>{{ log.waste_level }}</b>
+                {% if log.waste_reason %} · {{ log.waste_reason }}{% endif %}
+            </div>
+            <div style="font-size:11px;color:#aaa;">{{ log.created_at | strftime('%d %b %Y, %H:%M') }}</div>
+        </div>
+        <div style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#f6c847,#e8a020);color:white;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:700;">
+            +{{ log.points_earned }} 🌟
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-leaf"></i>
+        <p>Belum ada log. Mulai catat sisa makananmu!</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Style waste options
+document.querySelectorAll('.waste-radio').forEach(radio => {
+    radio.addEventListener('change', function() {
+        document.querySelectorAll('.waste-option').forEach(opt => {
+            opt.style.borderColor = '#e8ede9';
+            opt.style.background = 'white';
+        });
+        this.nextElementSibling.style.borderColor = '#2d8653';
+        this.nextElementSibling.style.background = '#e8f5ee';
+    });
+    if (radio.checked) {
+        radio.nextElementSibling.style.borderColor = '#2d8653';
+        radio.nextElementSibling.style.background = '#e8f5ee';
+    }
+});
+</script>
+{% endblock %}
