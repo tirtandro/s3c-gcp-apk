@@ -8,7 +8,8 @@ Platform digital untuk transformasi kantin sekolah menjadi ekosistem yang lebih 
 
 - **Cloud Native**: Berjalan di Google Cloud Run & Cloud SQL (PostgreSQL).
 - **Android Ready**: Berupa Progressive Web App (PWA) yang dapat diinstal langsung dari browser.
-- **Automated APK**: Build otomatis via GitHub Actions menggunakan Bubblewrap.
+- **Native APK Build**: Pembuatan APK menggunakan sistem Gradle TWA (Trusted Web Activity) asli untuk stabilitas tinggi.
+- **Automated CI/CD**: Build APK otomatis via GitHub Actions setiap kali ada perubahan kode.
 
 ## 🔑 Akun Demo
 
@@ -27,47 +28,44 @@ Platform digital untuk transformasi kantin sekolah menjadi ekosistem yang lebih 
 
 ### 🎓 Role Murid (Student)
 - **Dashboard** — Poin eco-warrior, level gamifikasi, ringkasan aktivitas.
-- **Katalog Menu** — Filter kategori & pencarian, modal info gizi lengkap, label Menu Sehat.
-- **Digital Order** — Keranjang belanja interaktif, multi-tenant, catatan pesanan.
-- **PWA Install** — Bisa diinstal sebagai aplikasi Android tanpa Play Store.
+- **Katalog Menu** — Filter kategori & pencarian, informasi gizi lengkap.
+- **Digital Order** — Keranjang belanja interaktif, multi-tenant.
+- **PWA Install** — Bisa diinstal langsung dari Chrome Android.
 
 ### 🍽️ Role Tenant (Pengelola Kantin)
-- **Dashboard** — Pendapatan harian, pesanan pending, aktivitas terbaru.
-- **Manajemen Menu** — CRUD menu, input nilai gizi detail, toggle aktif/nonaktif.
-- **Manajemen Pesanan** — Lihat & update status pesanan.
+- **Dashboard** — Pendapatan harian dan pesanan masuk.
+- **Manajemen Menu** — CRUD menu dengan input nilai gizi detail.
+- **Manajemen Pesanan** — Update status pesanan secara real-time.
 
 ### ⚙️ Role Admin (Tim S3C)
-- **Dashboard** — Statistik global, analitik tren, & distribusi food waste.
-- **Kelola Edukasi** — Manajemen artikel gizi & lingkungan secara dinamis (CRUD).
-- **Marketplace** — Kelola produk daur ulang dari sisa kantin.
+- **Dashboard** — Statistik global dan analitik tren kantin.
+- **Kelola Edukasi** — Manajemen artikel gizi & lingkungan (CRUD).
+- **Marketplace** — Kelola produk hasil daur ulang limbah kantin.
 
 ---
 
-## 📁 Struktur Proyek Terbaru
+## 📁 Struktur Proyek
 
 ```
 S3C-Flask/
-├── app.py                    ← Aplikasi utama Flask
-├── requirements.txt
-├── cloudbuild.yaml           ← Konfigurasi Deploy GCP
+├── app.py                    ← Backend utama (Flask)
 ├── .github/
 │   └── workflows/
-│       └── android_apk.yml   ← Auto-Build APK via GitHub Actions
-├── android/
-│   └── twa-manifest.json     ← Konfigurasi PWA to Android
+│       └── android_apk.yml   ← Pipeline Otomatisasi APK
+├── android/                  ← Project Android Native (TWA)
+│   ├── app/src/main/         ← Manifest & Resources (Ikon otomatis)
+│   └── build.gradle          ← Konfigurasi Gradle
 ├── static/
-│   ├── manifest.json         ← PWA Identity
-│   ├── sw.js                 ← Service Worker
-│   └── img/
-│       └── logo_sekolah.png  ← Ikon Aplikasi
-└── templates/                ← Jinja2 Templates
+│   ├── manifest.json         ← Identitas PWA
+│   └── sw.js                 ← Service Worker
+└── templates/                ← Tampilan (Jinja2)
 ```
 
 ---
 
-## 🎨 Teknologi
+## 🎨 Teknologi & Infrastruktur
 
-- **Backend**: Python + Flask + PostgreSQL
-- **Frontend**: HTML5 + CSS3 + Vanilla JS (Mobile First)
-- **Android**: Trusted Web Activity (TWA) / Bubblewrap
-- **Infrastructure**: Google Cloud Platform (Cloud Run, Cloud SQL)
+- **Backend**: Python, Flask, PostgreSQL
+- **Android**: Android Browser Helper (Trusted Web Activity)
+- **DevOps**: GitHub Actions, Docker, Google Cloud Build
+- **Cloud**: Google Cloud Run (Compute), Cloud SQL (Database)
