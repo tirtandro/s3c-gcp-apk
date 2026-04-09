@@ -5,14 +5,13 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -20,58 +19,41 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-      - name: Install Bubblewrap CLI
-        run: npm install -g @bubblewrap/cli
-
-      - name: Configure Bubblewrap SDK paths
+      - name: Download and Resize App Icons
         run: |
-          mkdir -p ~/.bubblewrap
-          cat > ~/.bubblewrap/config.json <<EOF
-          {
-            "jdkPath": "$JAVA_HOME",
-            "androidSdkPath": "$ANDROID_HOME"
-          }
-          EOF
+          sudo apt-get install -y imagemagick --quiet
+          curl -L -o /tmp/logo.png "https://s3c-service-3bbvxxtsja-et.a.run.app/static/img/logo_sekolah.png"
 
-      - name: Generate Signing Keystore
+          declare -A dpi_sizes=( ["ldpi"]=36 ["mdpi"]=48 ["hdpi"]=72 ["xhdpi"]=96 ["xxhdpi"]=144 ["xxxhdpi"]=192 )
+          for dpi in "${!dpi_sizes[@]}"; do
+            size=${dpi_sizes[$dpi]}
+            mkdir -p android/app/src/main/res/mipmap-$dpi
+            convert /tmp/logo.png -resize ${size}x${size} android/app/src/main/res/mipmap-$dpi/ic_launcher.png
+          done
+          echo "Icons generated successfully"
+
+      - name: Generate Gradle Wrapper
         run: |
           cd android
-          keytool -genkey -v \
-            -keystore android.keystore \
-            -alias android \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass s3cpassword \
-            -keypass s3cpassword \
-            -dname "CN=S3C, OU=App, O=SMAN2Wates, L=Wates, S=DIY, C=ID"
+          gradle wrapper --gradle-version=8.5
 
-      - name: Initialize Bubblewrap Project
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build Debug APK
         run: |
           cd android
-          bubblewrap init --manifest=https://s3c-service-3bbvxxtsja-et.a.run.app/manifest.json \
-            --directory=. \
-            --packageId=com.s3c.smartcanteen || true
-
-      - name: Build APK
-        run: |
-          cd android
-          bubblewrap build
+          ./gradlew assembleDebug --no-daemon --stacktrace
         env:
-          BUBBLEWRAP_KEYSTORE_PASSWORD: s3cpassword
-          BUBBLEWRAP_KEY_PASSWORD: s3cpassword
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
-      - name: Find and Upload APK
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: S3C-Release-APK
-          path: |
-            android/app-release-signed.apk
-            android/app-release.apk
-            android/**/*.apk
-          if-no-files-found: warn
+          name: S3C-Debug-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
