@@ -5,48 +5,73 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
-          distribution: 'adopt'
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Setup Node.js
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: '20'
 
-      - name: Install Bubblewrap
+      - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: Build APK with Bubblewrap
+      - name: Configure Bubblewrap SDK paths
         run: |
-          # Create Bubblewrap config to skip interactive path setup
           mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_SDK_ROOT\"}" > ~/.bubblewrap/config.json
-          
+          cat > ~/.bubblewrap/config.json <<EOF
+          {
+            "jdkPath": "$JAVA_HOME",
+            "androidSdkPath": "$ANDROID_HOME"
+          }
+          EOF
+
+      - name: Generate Signing Keystore
+        run: |
           cd android
-          
-          # Generate a temporary signing key if it doesn't exist
-          if [ ! -f "android.keystore" ]; then
-            keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass s3cpassword -keypass s3cpassword -dname "CN=S3C, OU=App, O=School, L=Wates, S=DIY, C=ID"
-          fi
-          
-          # Run build using the manifest
-          # We use yes to accept any standard prompts
-          yes | bubblewrap build --clean
+          keytool -genkey -v \
+            -keystore android.keystore \
+            -alias android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass s3cpassword \
+            -keypass s3cpassword \
+            -dname "CN=S3C, OU=App, O=SMAN2Wates, L=Wates, S=DIY, C=ID"
+
+      - name: Initialize Bubblewrap Project
+        run: |
+          cd android
+          bubblewrap init --manifest=https://s3c-service-3bbvxxtsja-et.a.run.app/manifest.json \
+            --directory=. \
+            --packageId=com.s3c.smartcanteen || true
+
+      - name: Build APK
+        run: |
+          cd android
+          bubblewrap build
         env:
           BUBBLEWRAP_KEYSTORE_PASSWORD: s3cpassword
           BUBBLEWRAP_KEY_PASSWORD: s3cpassword
 
-      - name: Upload APK
+      - name: Find and Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: S3C-Release-APK
-          path: android/*.apk
+          path: |
+            android/app-release-signed.apk
+            android/app-release.apk
+            android/**/*.apk
+          if-no-files-found: warn
