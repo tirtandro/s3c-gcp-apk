@@ -4,29 +4,11 @@ Platform digital untuk transformasi kantin sekolah menjadi ekosistem yang lebih 
 
 ---
 
-## 🚀 Cara Menjalankan
+## 🚀 Fitur Utama & Deployment
 
-### Prasyarat
-- Python 3.8+
-- Flask (`pip install flask`)
-
-### Langkah-langkah
-
-```bash
-# 1. Clone / extract project
-cd s3c
-
-# 2. Install dependency
-pip install flask
-
-# 3. Jalankan aplikasi
-python3 app.py
-
-# 4. Buka browser
-# http://localhost:5000
-```
-
----
+- **Cloud Native**: Berjalan di Google Cloud Run & Cloud SQL (PostgreSQL).
+- **Android Ready**: Berupa Progressive Web App (PWA) yang dapat diinstal langsung dari browser.
+- **Automated APK**: Build otomatis via GitHub Actions menggunakan Bubblewrap.
 
 ## 🔑 Akun Demo
 
@@ -36,92 +18,56 @@ python3 app.py
 | 🎓 Murid 2 | `siti` | `student123` |
 | 🍽️ Tenant 1 | `tenant1` | `tenant123` |
 | 🍽️ Tenant 2 | `tenant2` | `tenant123` |
-| ⚙️ Admin | `admin` | `admin123` |
+
+*(Login Admin dirahasiakan untuk alasan keamanan)*
 
 ---
 
 ## 📱 Fitur Lengkap
 
 ### 🎓 Role Murid (Student)
-- **Dashboard** — Poin eco-warrior, level gamifikasi, ringkasan aktivitas
-- **Katalog Menu** — Filter kategori & pencarian, modal info gizi lengkap, label Menu Sehat
-- **Digital Order** — Keranjang belanja interaktif, multi-tenant, catatan pesanan
-- **Food Waste Log** — Gamifikasi sisa makanan, sistem poin, riwayat log
-- **Pojok Edukasi** — Artikel gizi & lingkungan, filter kategori, halaman detail
-- **Marketplace** — Lihat produk daur ulang dari sisa kantin
+- **Dashboard** — Poin eco-warrior, level gamifikasi, ringkasan aktivitas.
+- **Katalog Menu** — Filter kategori & pencarian, modal info gizi lengkap, label Menu Sehat.
+- **Digital Order** — Keranjang belanja interaktif, multi-tenant, catatan pesanan.
+- **PWA Install** — Bisa diinstal sebagai aplikasi Android tanpa Play Store.
 
 ### 🍽️ Role Tenant (Pengelola Kantin)
-- **Dashboard** — Pendapatan harian, pesanan pending, aktivitas terbaru
-- **Manajemen Menu** — CRUD menu, emoji picker, input nilai gizi detail, toggle aktif/nonaktif
-- **Manajemen Pesanan** — Lihat & update status pesanan (pending → diproses → siap → selesai), statistik menu terlaris
+- **Dashboard** — Pendapatan harian, pesanan pending, aktivitas terbaru.
+- **Manajemen Menu** — CRUD menu, input nilai gizi detail, toggle aktif/nonaktif.
+- **Manajemen Pesanan** — Lihat & update status pesanan.
 
 ### ⚙️ Role Admin (Tim S3C)
-- **Dashboard** — Statistik global: murid, pesanan, waste logs, marketplace
-- **Analitik** — Chart tren pesanan 7 hari, distribusi food waste (donut chart), rasio menu sehat, performa tenant
-- **Marketplace Limbah** — CRUD produk hasil daur ulang (kompos, pupuk cair, kerajinan)
-- **Kelola Edukasi** — Publikasi & hapus artikel gizi & lingkungan
+- **Dashboard** — Statistik global, analitik tren, & distribusi food waste.
+- **Kelola Edukasi** — Manajemen artikel gizi & lingkungan secara dinamis (CRUD).
+- **Marketplace** — Kelola produk daur ulang dari sisa kantin.
 
 ---
 
-## 🗄️ Struktur Database
+## 📁 Struktur Proyek Terbaru
 
 ```
-users          → id, name, username, password, role, kelas, tenant_name
-menus          → id, tenant_id, name, description, price, category,
-                 calories, protein, carbs, fat, fiber, is_healthy, is_available
-orders         → id, student_id, tenant_id, status, total_price, notes
-order_items    → id, order_id, menu_id, quantity, subtotal
-waste_logs     → id, student_id, menu_id, waste_level, waste_reason, points_earned
-education_posts→ id, title, content, category, image_emoji, author_id
-marketplace_items → id, name, description, category, price, unit, stock, image_emoji
-```
-
----
-
-## 🎨 Desain & Teknologi
-
-- **Backend**: Python + Flask + SQLite3 (tanpa ORM eksternal)
-- **Frontend**: HTML5 + CSS3 + Vanilla JS, mobile-first
-- **Charts**: Chart.js (CDN)
-- **Icons**: Font Awesome 6 (CDN)
-- **Fonts**: Plus Jakarta Sans + Fraunces (Google Fonts)
-- **Palet Warna**: Forest Green (#1a5c38), Leaf (#2d8653), Earth (#8b6914), Cream (#fdfaf6)
-
----
-
-## 📁 Struktur Folder
-
-```
-s3c/
+S3C-Flask/
 ├── app.py                    ← Aplikasi utama Flask
 ├── requirements.txt
-├── README.md
-├── instance/
-│   └── s3c.db                ← SQLite database (auto-created)
-└── templates/
-    ├── base.html             ← Layout utama (nav, flash, bottom nav)
-    ├── landing.html          ← Halaman beranda publik
-    ├── auth/
-    │   ├── login.html
-    │   └── register.html
-    ├── student/
-    │   ├── dashboard.html
-    │   ├── menu_catalog.html
-    │   ├── order.html
-    │   ├── my_orders.html
-    │   ├── waste_log.html
-    │   ├── education.html
-    │   ├── education_detail.html
-    │   └── marketplace.html
-    ├── tenant/
-    │   ├── dashboard.html
-    │   ├── menus.html
-    │   ├── menu_form.html
-    │   └── orders.html
-    └── admin/
-        ├── dashboard.html
-        ├── analytics.html
-        ├── marketplace.html
-        ├── marketplace_form.html
-        └── education.html
+├── cloudbuild.yaml           ← Konfigurasi Deploy GCP
+├── .github/
+│   └── workflows/
+│       └── android_apk.yml   ← Auto-Build APK via GitHub Actions
+├── android/
+│   └── twa-manifest.json     ← Konfigurasi PWA to Android
+├── static/
+│   ├── manifest.json         ← PWA Identity
+│   ├── sw.js                 ← Service Worker
+│   └── img/
+│       └── logo_sekolah.png  ← Ikon Aplikasi
+└── templates/                ← Jinja2 Templates
 ```
+
+---
+
+## 🎨 Teknologi
+
+- **Backend**: Python + Flask + PostgreSQL
+- **Frontend**: HTML5 + CSS3 + Vanilla JS (Mobile First)
+- **Android**: Trusted Web Activity (TWA) / Bubblewrap
+- **Infrastructure**: Google Cloud Platform (Cloud Run, Cloud SQL)
