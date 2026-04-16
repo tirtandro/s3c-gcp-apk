@@ -15,22 +15,63 @@
     <link rel="apple-touch-icon" href="/static/img/logo_sekolah.png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0d2818; color: white; min-height: 100vh; overflow-x: hidden; }
+        html { overflow-x: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0d2818; color: white; min-height: 100vh; overflow-x: hidden; max-width: 100%; }
         .hero {
             min-height: 100vh; position: relative;
             background: linear-gradient(160deg, #0d2818 0%, #1a5c38 40%, #2d8653 100%);
             display: flex; flex-direction: column;
+            overflow: hidden;
         }
-        /* Decorative circles */
+        /* Decorative circles — clipped by hero overflow:hidden */
         .hero::before {
             content: ''; position: absolute; top: -100px; right: -100px;
             width: 400px; height: 400px; background: rgba(76,175,120,0.12);
-            border-radius: 50%;
+            border-radius: 50%; pointer-events: none;
         }
         .hero::after {
             content: ''; position: absolute; bottom: -60px; left: -80px;
             width: 300px; height: 300px; background: rgba(168,230,188,0.08);
+            border-radius: 50%; pointer-events: none;
+        }
+        /* ── SVG Floating Leaves ── */
+        .hero-svg-leaves {
+            position: absolute; right: -4px; bottom: 48px;
+            width: 170px; opacity: 0.75; pointer-events: none;
+            animation: leaf-float 7s ease-in-out infinite;
+            filter: drop-shadow(0 4px 16px rgba(45,134,83,0.3));
+        }
+        @keyframes leaf-float {
+            0%, 100% { transform: translateY(0) rotate(-2deg); }
+            50% { transform: translateY(-14px) rotate(3deg); }
+        }
+        /* Second leaf — smaller, offset timing */
+        .hero-svg-leaf2 {
+            position: absolute; right: 100px; bottom: 20px;
+            width: 80px; opacity: 0.45; pointer-events: none;
+            animation: leaf-float2 9s ease-in-out infinite 1.5s;
+        }
+        @keyframes leaf-float2 {
+            0%, 100% { transform: translateY(0) rotate(5deg); }
+            50% { transform: translateY(-10px) rotate(-3deg); }
+        }
+        /* Small floating circle orb */
+        .hero-orb {
+            position: absolute; top: 30%; left: -30px;
+            width: 120px; height: 120px;
             border-radius: 50%;
+            background: radial-gradient(circle, rgba(168,230,188,0.15) 0%, transparent 70%);
+            pointer-events: none;
+            animation: orb-pulse 5s ease-in-out infinite;
+        }
+        @keyframes orb-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.3); opacity: 1; }
+        }
+        /* Wave divider */
+        .hero-wave-divider {
+            display: block; width: 100%; margin-bottom: -2px;
+            position: relative; z-index: 1;
         }
         .landing-nav {
             padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
@@ -205,6 +246,10 @@
             body { max-width: 640px; margin: 0 auto; }
             .hero-title { font-size: 52px; }
         }
+        @media (max-width: 400px) {
+            .hero-svg-leaves { width: 120px; }
+            .hero-svg-leaf2 { width: 60px; right: 80px; }
+        }
     </style>
 </head>
 <body>
@@ -256,6 +301,40 @@
                 </a>
             </div>
         </div>
+
+        <!-- SVG Floating Leaves Decoration -->
+        <svg class="hero-svg-leaves" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" aria-hidden="true">
+            <!-- Leaf 1: large, main -->
+            <path d="M100 225 C55 185, 12 118, 38 50 C58 -5, 148 8, 158 72 C168 136, 100 225, 100 225Z"
+                  fill="rgba(168,230,188,0.22)" stroke="rgba(168,230,188,0.5)" stroke-width="1.5"/>
+            <!-- Leaf 2: behind, offset -->
+            <path d="M100 225 C125 190, 175 145, 162 80 C148 20, 78 28, 68 82 C58 136, 100 225, 100 225Z"
+                  fill="rgba(76,175,120,0.16)" stroke="rgba(76,175,120,0.35)" stroke-width="1.2"/>
+            <!-- Main vein -->
+            <path d="M100 225 C98 170, 88 100, 78 48" stroke="rgba(168,230,188,0.6)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+            <!-- Side veins -->
+            <path d="M90 170 C75 158, 58 150, 48 140" stroke="rgba(168,230,188,0.3)" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <path d="M86 140 C72 128, 55 118, 44 106" stroke="rgba(168,230,188,0.25)" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <path d="M83 110 C70 100, 56 88, 48 78" stroke="rgba(168,230,188,0.2)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+        </svg>
+
+        <!-- SVG Small Leaf 2 -->
+        <svg class="hero-svg-leaf2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" aria-hidden="true">
+            <path d="M50 115 C28 92, 6 60, 20 26 C30 2, 74 4, 80 36 C86 68, 50 115, 50 115Z"
+                  fill="rgba(168,230,188,0.18)" stroke="rgba(168,230,188,0.4)" stroke-width="1.2"/>
+            <path d="M50 115 C50 85, 44 50, 38 24" stroke="rgba(168,230,188,0.5)" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        </svg>
+
+        <!-- Orb glow left -->
+        <div class="hero-orb"></div>
+    </div>
+
+    <!-- Wave Divider: Hero → Features -->
+    <div style="background: linear-gradient(160deg, #0d2818 0%, #1a5c38 40%, #2d8653 100%); margin-bottom:-1px;">
+        <svg class="hero-wave-divider" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 70" preserveAspectRatio="none" style="height:55px;" aria-hidden="true">
+            <path d="M0,35 C200,70 400,0 600,35 C800,70 1000,10 1200,40 C1320,58 1400,28 1440,35 L1440,70 L0,70 Z"
+                  fill="#fdfaf6"/>
+        </svg>
     </div>
 
     <div class="features-section">
