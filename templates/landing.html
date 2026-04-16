@@ -21,7 +21,6 @@
             min-height: 100vh; position: relative;
             background: linear-gradient(160deg, #0d2818 0%, #1a5c38 40%, #2d8653 100%);
             display: flex; flex-direction: column;
-            overflow: hidden;
         }
         /* Decorative circles — clipped by hero overflow:hidden */
         .hero::before {
@@ -36,37 +35,41 @@
         }
         /* ── SVG Floating Leaves ── */
         .hero-svg-leaves {
-            position: absolute; right: -4px; bottom: 48px;
-            width: 170px; opacity: 0.75; pointer-events: none;
+            position: absolute; right: 0; top: 50%;
+            transform: translateY(-40%);
+            width: 180px; opacity: 0.7; pointer-events: none;
             animation: leaf-float 7s ease-in-out infinite;
-            filter: drop-shadow(0 4px 16px rgba(45,134,83,0.3));
+            filter: drop-shadow(0 4px 16px rgba(45,134,83,0.35));
+            z-index: 2;
         }
         @keyframes leaf-float {
-            0%, 100% { transform: translateY(0) rotate(-2deg); }
-            50% { transform: translateY(-14px) rotate(3deg); }
+            0%, 100% { transform: translateY(-40%) rotate(-2deg); }
+            50% { transform: translateY(-52%) rotate(3deg); }
         }
-        /* Second leaf — smaller, offset timing */
+        /* Second leaf — upper right, smaller */
         .hero-svg-leaf2 {
-            position: absolute; right: 100px; bottom: 20px;
-            width: 80px; opacity: 0.45; pointer-events: none;
+            position: absolute; right: 24px; top: 28%;
+            width: 90px; opacity: 0.4; pointer-events: none;
             animation: leaf-float2 9s ease-in-out infinite 1.5s;
+            z-index: 2;
         }
         @keyframes leaf-float2 {
-            0%, 100% { transform: translateY(0) rotate(5deg); }
-            50% { transform: translateY(-10px) rotate(-3deg); }
+            0%, 100% { transform: translateY(0) rotate(8deg); }
+            50% { transform: translateY(-14px) rotate(-2deg); }
         }
         /* Small floating circle orb */
         .hero-orb {
-            position: absolute; top: 30%; left: -30px;
-            width: 120px; height: 120px;
+            position: absolute; top: 35%; left: 0;
+            width: 100px; height: 100px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(168,230,188,0.15) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(168,230,188,0.12) 0%, transparent 70%);
             pointer-events: none;
             animation: orb-pulse 5s ease-in-out infinite;
+            z-index: 1;
         }
         @keyframes orb-pulse {
-            0%, 100% { transform: scale(1); opacity: 0.6; }
-            50% { transform: scale(1.3); opacity: 1; }
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.4); opacity: 0.9; }
         }
         /* Wave divider */
         .hero-wave-divider {
