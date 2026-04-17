@@ -124,35 +124,35 @@
         <div class="nutrient-item">
             <div class="nutrient-header">
                 <span class="nutrient-name">⚡ Kalori</span>
-                <span class="nutrient-val" id="vKal" style="color:#e8a020;">0 / 600 kcal</span>
+                <span class="nutrient-val" id="vKal" style="color:#e8a020;">0 / {{ quests.cal }} kcal</span>
             </div>
             <div class="nutrient-bar"><div class="nutrient-fill" id="bKal" style="width:0%;background:linear-gradient(90deg,#f6c847,#e8a020);"></div></div>
         </div>
         <div class="nutrient-item">
             <div class="nutrient-header">
                 <span class="nutrient-name">💪 Protein</span>
-                <span class="nutrient-val" id="vProt" style="color:#1a56c4;">0 / 20 g</span>
+                <span class="nutrient-val" id="vProt" style="color:#1a56c4;">0 / {{ quests.pro }} g</span>
             </div>
             <div class="nutrient-bar"><div class="nutrient-fill" id="bProt" style="width:0%;background:linear-gradient(90deg,#85b7eb,#378add);"></div></div>
         </div>
         <div class="nutrient-item">
             <div class="nutrient-header">
                 <span class="nutrient-name">🌾 Karbo</span>
-                <span class="nutrient-val" id="vCarb" style="color:#8b6914;">0 / 80 g</span>
+                <span class="nutrient-val" id="vCarb" style="color:#8b6914;">0 / {{ quests.carb }} g</span>
             </div>
             <div class="nutrient-bar"><div class="nutrient-fill" id="bCarb" style="width:0%;background:linear-gradient(90deg,#fac775,#ba7517);"></div></div>
         </div>
         <div class="nutrient-item">
             <div class="nutrient-header">
                 <span class="nutrient-name">🥑 Lemak</span>
-                <span class="nutrient-val" id="vFat" style="color:#e76f51;">0 / 10 g</span>
+                <span class="nutrient-val" id="vFat" style="color:#e76f51;">0 / {{ quests.fat }} g</span>
             </div>
             <div class="nutrient-bar"><div class="nutrient-fill" id="bFat" style="width:0%;background:linear-gradient(90deg,#f4a261,#e76f51);"></div></div>
         </div>
         <div class="nutrient-item" style="grid-column:span 2;">
             <div class="nutrient-header">
                 <span class="nutrient-name">🌿 Serat</span>
-                <span class="nutrient-val" id="vFib" style="color:#1a5c38;">0 / 8 g</span>
+                <span class="nutrient-val" id="vFib" style="color:#1a5c38;">0 / {{ quests.fiber }} g</span>
             </div>
             <div class="nutrient-bar"><div class="nutrient-fill" id="bFib" style="width:0%;background:linear-gradient(90deg,#a8e6bc,#2d8653);"></div></div>
         </div>
@@ -273,7 +273,7 @@ thumbs[{{ menu.id }}] = '{% if menu.image_file %}{{ menu.image_file }}{% else %}
 {% endfor %}{% endfor %}
 
 // ── Quest targets ──
-const TARGETS = { kal:600, prot:20, carb:80, fat:10, fib:8 };
+const TARGETS = { kal:{{ quests.cal }}, prot:{{ quests.pro }}, carb:{{ quests.carb }}, fat:{{ quests.fat }}, fib:{{ quests.fiber }} };
 let completedQuests = new Set();
 
 function changeQty(id, price, kal, prot, carb, fat, fib, delta) {
@@ -321,7 +321,7 @@ function updateQuest() {
     const vals = { kal, prot, carb, fat, fib };
     const ids = { kal:'Kal', prot:'Prot', carb:'Carb', fat:'Fat', fib:'Fib' };
     const units = { kal:' kcal', prot:'g', carb:'g', fat:'g', fib:'g' };
-    const targLabels = { kal:'600', prot:'20', carb:'80', fat:'10', fib:'8' };
+    const targLabels = { kal:'{{ quests.cal }}', prot:'{{ quests.pro }}', carb:'{{ quests.carb }}', fat:'{{ quests.fat }}', fib:'{{ quests.fiber }}' };
     let done = 0;
     const wasComplete = new Set(completedQuests);
 

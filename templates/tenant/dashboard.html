@@ -1,8 +1,35 @@
 {% extends 'base.html' %}
 {% block title %}Dashboard Tenant - S3C{% endblock %}
 {% block content %}
+<style>
+/* ── SVG STEAM ANIMATION ── */
+.tenant-steam-svg {
+    position:absolute; top:-10px; right:10px; width:100px; height:120px;
+    pointer-events:none; z-index:1; opacity: 0.6;
+}
+.steam-path {
+    animation: steam-rise 6s infinite ease-out;
+    transform-origin: bottom center;
+}
+.steam-p2 { animation-delay: 2s; }
+.steam-p3 { animation-delay: 4s; }
+@keyframes steam-rise {
+    0% { transform: translateY(20px) scale(0.8); opacity: 0; }
+    20% { opacity: 0.8; }
+    80% { transform: translateY(-40px) scale(1.5) translateX(10px); opacity: 0.4; }
+    100% { transform: translateY(-60px) scale(2) translateX(20px); opacity: 0; }
+}
+</style>
+
 <div style="background:linear-gradient(135deg,#8b6914,#c4956a);margin:16px;border-radius:24px;padding:24px;color:white;position:relative;overflow:hidden;">
     <div style="position:absolute;top:-30px;right:-30px;font-size:120px;opacity:0.1;">🍽️</div>
+    
+    <!-- Animated Steam SVG -->
+    <svg class="tenant-steam-svg" viewBox="0 0 100 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path class="steam-path steam-p1" d="M30 150 C 10 100, 60 80, 40 10 C 30 -10, 50 -20, 60 -10" stroke="rgba(255,255,255,0.4)" stroke-width="8" stroke-linecap="round"/>
+        <path class="steam-path steam-p2" d="M50 150 C 70 120, 20 90, 60 20 C 70 0, 40 -10, 50 -5" stroke="rgba(255,255,255,0.5)" stroke-width="12" stroke-linecap="round"/>
+        <path class="steam-path steam-p3" d="M70 150 C 90 100, 40 70, 80 15 C 90 -5, 70 -15, 75 -5" stroke="rgba(255,255,255,0.3)" stroke-width="6" stroke-linecap="round"/>
+    </svg>
     <div style="font-size:13px;opacity:0.8;margin-bottom:4px;">Selamat Datang! 👨‍🍳</div>
     <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:700;margin-bottom:2px;">{{ user.tenant_name or user.name }}</div>
     <div style="font-size:12px;opacity:0.7;">{{ user.name }}</div>
