@@ -4,100 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S3C - Smart Sustainable School Canteen</title>
+    <meta name="description" content="Platform digital transformasi kantin sekolah menjadi ekosistem berkelanjutan — gizi seimbang, zero waste, dan ekonomi sirkular. SMA Negeri 2 Wates.">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
-    <!-- PWA Support -->
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <!-- PWA -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1a5c38">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="/static/img/logo_sekolah.png">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { overflow-x: hidden; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0d2818; color: white; min-height: 100vh; overflow-x: hidden; max-width: 100%; }
-        .hero {
-            min-height: 100vh; position: relative;
-            background: linear-gradient(160deg, #0d2818 0%, #1a5c38 40%, #2d8653 100%);
-            display: flex; flex-direction: column;
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { overflow-x: hidden; scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #071a0e;
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
-        /* Decorative circles — clipped by hero overflow:hidden */
-        .hero::before {
-            content: ''; position: absolute; top: -100px; right: -100px;
-            width: 400px; height: 400px; background: rgba(76,175,120,0.12);
-            border-radius: 50%; pointer-events: none;
-        }
-        .hero::after {
-            content: ''; position: absolute; bottom: -60px; left: -80px;
-            width: 300px; height: 300px; background: rgba(168,230,188,0.08);
-            border-radius: 50%; pointer-events: none;
-        }
-        /* ── SVG Floating Leaves ── */
-        .hero-svg-leaves {
-            position: absolute; right: 0; top: 50%;
-            transform: translateY(-40%);
-            width: 180px; opacity: 0.7; pointer-events: none;
-            animation: leaf-float 7s ease-in-out infinite;
-            filter: drop-shadow(0 4px 16px rgba(45,134,83,0.35));
-            z-index: 2;
-        }
-        @keyframes leaf-float {
-            0%, 100% { transform: translateY(-40%) rotate(-2deg); }
-            50% { transform: translateY(-52%) rotate(3deg); }
-        }
-        /* Second leaf — upper right, smaller */
-        .hero-svg-leaf2 {
-            position: absolute; right: 24px; top: 28%;
-            width: 90px; opacity: 0.4; pointer-events: none;
-            animation: leaf-float2 9s ease-in-out infinite 1.5s;
-            z-index: 2;
-        }
-        @keyframes leaf-float2 {
-            0%, 100% { transform: translateY(0) rotate(8deg); }
-            50% { transform: translateY(-14px) rotate(-2deg); }
-        }
-        /* Small floating circle orb */
-        .hero-orb {
-            position: absolute; top: 35%; left: 0;
-            width: 100px; height: 100px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(168,230,188,0.12) 0%, transparent 70%);
+
+        /* ── WebGL Canvas ── */
+        #webgl-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
             pointer-events: none;
-            animation: orb-pulse 5s ease-in-out infinite;
+        }
+
+        /* ── All page content sits above canvas ── */
+        .page-wrapper {
+            position: relative;
             z-index: 1;
         }
-        @keyframes orb-pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.4); opacity: 0.9; }
+
+        /* ══════════════════════════════════════
+           HERO SECTION
+        ══════════════════════════════════════ */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
-        /* Wave divider */
-        .hero-wave-divider {
-            display: block; width: 100%; margin-bottom: -2px;
-            position: relative; z-index: 1;
-        }
+
+        /* ── Nav ── */
         .landing-nav {
-            padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
-            position: relative; z-index: 10;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 10;
+            background: rgba(7, 26, 14, 0.35);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(168, 230, 188, 0.08);
         }
-        /* ── brand block ── */
+
         .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
         .brand-school-info { display: flex; flex-direction: column; gap: 2px; }
         .brand-school-name-text {
-            font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.6);
+            font-size: 9px; font-weight: 800;
+            color: rgba(255,255,255,0.55);
             letter-spacing: 1px; text-transform: uppercase; line-height: 1;
         }
-        /* ── S3C gold badge (same system as top nav) ── */
         .brand-s3c-wrap { display: flex; align-items: center; gap: 7px; }
         .brand-s3c-badge {
             display: inline-flex; align-items: center;
             padding: 4px 12px 4px 9px;
             border-radius: 9px;
             background: linear-gradient(135deg, #f6c847 0%, #ffe680 50%, #f6c847 100%);
-            box-shadow:
-                0 0 0 1px rgba(255,255,255,0.2),
-                0 3px 14px rgba(246,200,71,0.55),
-                0 0 28px rgba(246,200,71,0.25);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.2), 0 3px 14px rgba(246,200,71,0.55), 0 0 28px rgba(246,200,71,0.25);
             position: relative; overflow: hidden;
             animation: lbadge-pulse 3s ease-in-out infinite;
         }
@@ -112,10 +94,7 @@
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.65), transparent);
             animation: lbadge-shimmer 2.6s ease-in-out infinite 0.4s;
         }
-        @keyframes lbadge-shimmer {
-            0%   { left: -80%; }
-            100% { left: 160%; }
-        }
+        @keyframes lbadge-shimmer { 0% { left: -80%; } 100% { left: 160%; } }
         .brand-s3c-letters {
             font-family: 'Fraunces', serif;
             font-size: 22px; font-weight: 900;
@@ -124,9 +103,7 @@
             position: relative; z-index: 1;
         }
         .brand-s3c-letters em { font-style: normal; color: #0f5c20; }
-        .brand-s3c-sub {
-            display: flex; flex-direction: column; gap: 0px;
-        }
+        .brand-s3c-sub { display: flex; flex-direction: column; }
         .brand-s3c-sub-main {
             font-size: 11px; font-weight: 700;
             color: rgba(168,230,188,0.9);
@@ -134,311 +111,471 @@
         }
         .brand-s3c-sub-small {
             font-size: 9px; font-style: italic;
-            color: rgba(255,255,255,0.45);
+            color: rgba(255,255,255,0.4);
             letter-spacing: 0.2px; line-height: 1.2;
         }
-        /* ── login button ── */
+
         .nav-login {
             padding: 9px 20px; border-radius: 12px;
-            border: 2px solid rgba(255,255,255,0.3);
-            color: white; text-decoration: none; font-weight: 700; font-size: 14px;
-            backdrop-filter: blur(10px); transition: all 0.2s;
-            background: rgba(255,255,255,0.08);
+            border: 1.5px solid rgba(168,230,188,0.35);
+            color: #a8e6bc; text-decoration: none; font-weight: 700; font-size: 14px;
+            backdrop-filter: blur(10px);
+            background: rgba(26,92,56,0.25);
+            transition: all 0.25s;
         }
-        .nav-login:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.5); }
+        .nav-login:hover {
+            background: rgba(76,175,120,0.35);
+            border-color: rgba(168,230,188,0.7);
+            color: white;
+        }
+
+        /* ── Hero Content ── */
         .hero-content {
-            flex: 1; display: flex; flex-direction: column; justify-content: center;
-            padding: 32px 24px; position: relative; z-index: 10;
+            flex: 1;
+            display: flex; flex-direction: column; justify-content: center;
+            padding: 40px 24px 48px;
+            position: relative; z-index: 2;
         }
+
+        .hero-school-row {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 20px;
+        }
+        .hero-school-logo {
+            width: 54px; height: 54px; object-fit: contain;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.08);
+            padding: 3px;
+            filter: drop-shadow(0 2px 12px rgba(0,0,0,0.5));
+        }
+        .hero-school-text-row { display: flex; flex-direction: column; gap: 2px; }
+        .hero-school-name { font-size: 10px; opacity: 0.65; letter-spacing: 1px; text-transform: uppercase; }
+        .hero-school-motto { font-size: 13px; font-weight: 700; color: #f6c847; }
+
         .hero-badge {
             display: inline-flex; align-items: center; gap: 8px;
-            background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(26,92,56,0.45);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(168,230,188,0.25);
             padding: 8px 16px; border-radius: 20px; font-size: 13px;
-            width: fit-content; margin-bottom: 20px;
+            width: fit-content; margin-bottom: 22px;
+            color: #a8e6bc;
+            animation: badge-glow 3s ease-in-out infinite;
         }
-        .hero-badge span { color: #a8e6bc; }
-        .hero-title {
-            font-family: 'Fraunces', serif; font-size: 42px; font-weight: 900;
-            line-height: 1.1; margin-bottom: 16px;
+        @keyframes badge-glow {
+            0%,100% { box-shadow: 0 0 0 0 rgba(76,175,120,0); }
+            50% { box-shadow: 0 0 18px 2px rgba(76,175,120,0.25); }
         }
-        .hero-title .accent { color: #a8e6bc; font-style: italic; }
+
+        h1.hero-title {
+            font-family: 'Fraunces', serif;
+            font-size: 44px; font-weight: 900;
+            line-height: 1.08; margin-bottom: 18px;
+            text-shadow: 0 2px 24px rgba(0,0,0,0.4);
+            animation: title-in 0.9s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        @keyframes title-in {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .hero-title .accent { color: #6abf7e; font-style: italic; }
+
         .hero-desc {
-            font-size: 15px; line-height: 1.7; opacity: 0.85; margin-bottom: 32px;
-            max-width: 380px;
+            font-size: 15px; line-height: 1.75; opacity: 0.82;
+            margin-bottom: 36px; max-width: 400px;
+            animation: title-in 1s 0.15s cubic-bezier(0.16,1,0.3,1) both;
         }
+
         .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
         .btn-hero-primary {
-            padding: 14px 28px; background: white; color: #1a5c38;
-            border-radius: 14px; font-weight: 800; font-size: 15px;
-            text-decoration: none; display: flex; align-items: center; gap: 8px;
-            transition: all 0.3s; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #2d8653, #4caf78);
+            color: white; border-radius: 14px; font-weight: 800; font-size: 15px;
+            text-decoration: none; display: flex; align-items: center; gap: 9px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 24px rgba(45,134,83,0.5), 0 0 0 1px rgba(168,230,188,0.15);
+            position: relative; overflow: hidden;
         }
-        .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+        .btn-hero-primary::after {
+            content: '';
+            position: absolute; top: 0; left: -100%;
+            width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 36px rgba(45,134,83,0.6); }
+        .btn-hero-primary:hover::after { left: 140%; }
+
         .btn-hero-secondary {
-            padding: 14px 28px; border: 2px solid rgba(255,255,255,0.4);
-            color: white; border-radius: 14px; font-weight: 700; font-size: 15px;
-            text-decoration: none; backdrop-filter: blur(10px); transition: all 0.2s;
+            padding: 15px 28px;
+            border: 1.5px solid rgba(168,230,188,0.35);
+            color: #a8e6bc; border-radius: 14px; font-weight: 700; font-size: 15px;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            background: rgba(26,92,56,0.2);
+            transition: all 0.25s;
         }
-        .btn-hero-secondary:hover { background: rgba(255,255,255,0.15); }
-        /* Features */
+        .btn-hero-secondary:hover {
+            background: rgba(76,175,120,0.25);
+            border-color: rgba(168,230,188,0.6);
+            color: white;
+        }
+
+        /* ── Wave Divider ── */
+        .wave-wrap {
+            background: transparent;
+            margin-bottom: -2px;
+            position: relative; z-index: 2;
+        }
+        .wave-wrap svg { display: block; }
+
+        /* ══════════════════════════════════════
+           FEATURES SECTION — glassy dark
+        ══════════════════════════════════════ */
         .features-section {
-            background: #fdfaf6; padding: 48px 24px;
+            background: rgba(10, 28, 18, 0.88);
+            backdrop-filter: blur(8px);
+            padding: 56px 24px;
+            position: relative; z-index: 2;
         }
-        .features-title { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700; color: #1a5c38; text-align: center; margin-bottom: 8px; }
-        .features-subtitle { text-align: center; color: #888; font-size: 14px; margin-bottom: 32px; }
-        .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .section-heading { text-align: center; margin-bottom: 36px; }
+        .section-label {
+            display: inline-block;
+            font-size: 11px; font-weight: 700; letter-spacing: 2px;
+            color: #4caf78; text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .section-title {
+            font-family: 'Fraunces', serif;
+            font-size: 30px; font-weight: 700;
+            color: white; margin-bottom: 6px;
+        }
+        .section-sub { font-size: 14px; color: rgba(255,255,255,0.5); }
+
+        .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
         .feature-card {
-            background: white; border-radius: 20px; padding: 20px;
-            box-shadow: 0 2px 12px rgba(26,92,56,0.08);
+            background: rgba(26,92,56,0.18);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(168,230,188,0.12);
+            border-radius: 20px; padding: 22px 18px;
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(45,134,83,0.25);
+            border-color: rgba(168,230,188,0.28);
         }
         .feature-icon {
-            width: 48px; height: 48px; border-radius: 14px;
-            display: flex; align-items: center; justify-content: center; font-size: 24px;
-            margin-bottom: 12px;
+            width: 50px; height: 50px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; margin-bottom: 14px;
         }
-        .fi-green { background: #e8f5ee; }
-        .fi-earth { background: #f5e6d3; }
-        .fi-blue { background: #e8f0fe; }
-        .fi-yellow { background: #fff8e8; }
-        .feature-name { font-weight: 700; font-size: 14px; color: #1e2a1f; margin-bottom: 4px; }
-        .feature-desc { font-size: 12px; color: #888; line-height: 1.5; }
-        /* Roles */
-        .roles-section { background: white; padding: 48px 24px; }
-        .roles-title { font-family: 'Fraunces', serif; font-size: 28px; color: #1a5c38; text-align: center; margin-bottom: 24px; }
+        .fi-green  { background: rgba(76,175,120,0.2); }
+        .fi-earth  { background: rgba(168,230,188,0.15); }
+        .fi-blue   { background: rgba(45,134,83,0.25); }
+        .fi-yellow { background: rgba(106,191,126,0.2); }
+        .feature-name { font-weight: 700; font-size: 14px; color: #e0f5ea; margin-bottom: 6px; }
+        .feature-desc { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+
+        /* ══════════════════════════════════════
+           ROLES SECTION
+        ══════════════════════════════════════ */
+        .roles-section {
+            background: rgba(7, 20, 12, 0.92);
+            backdrop-filter: blur(6px);
+            padding: 56px 24px;
+            position: relative; z-index: 2;
+        }
+
         .role-card {
-            border-radius: 20px; padding: 24px; margin-bottom: 16px;
+            border-radius: 20px; padding: 24px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(168,230,188,0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.25s;
         }
-        .role-card-student { background: linear-gradient(135deg, #e8f5ee, #d4f0e0); }
-        .role-card-tenant { background: linear-gradient(135deg, #f5e6d3, #ffe8c8); }
-        .role-card-admin { background: linear-gradient(135deg, #e8f0fe, #d4e4fd); }
+        .role-card:hover { transform: translateY(-3px); }
+        .role-card-student { background: rgba(26,92,56,0.3); border-color: rgba(76,175,120,0.2); }
+        .role-card-tenant  { background: rgba(35,70,45,0.3); border-color: rgba(106,191,126,0.15); }
+        .role-card-admin   { background: rgba(15,61,36,0.35); border-color: rgba(168,230,188,0.15); }
+
         .role-emoji { font-size: 32px; margin-bottom: 10px; }
-        .role-name { font-weight: 800; font-size: 18px; color: #1e2a1f; margin-bottom: 6px; }
-        .role-desc { font-size: 13px; color: #555; margin-bottom: 14px; line-height: 1.5; }
+        .role-name { font-weight: 800; font-size: 18px; color: #e0f5ea; margin-bottom: 6px; }
+        .role-desc { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 14px; line-height: 1.6; }
         .role-features { list-style: none; }
-        .role-features li { font-size: 13px; color: #444; padding: 3px 0; display: flex; gap: 6px; }
-        .role-features li::before { content: '✓'; color: #2d8653; font-weight: 800; }
-        /* CTA */
-        .cta-section {
-            background: linear-gradient(135deg, #1a5c38, #2d8653);
-            padding: 48px 24px; text-align: center; color: white;
+        .role-features li {
+            font-size: 13px; color: rgba(255,255,255,0.7);
+            padding: 4px 0; display: flex; gap: 8px; align-items: flex-start;
         }
-        .cta-title { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700; margin-bottom: 12px; }
-        .cta-desc { font-size: 14px; opacity: 0.85; margin-bottom: 24px; }
+        .role-features li::before { content: '✓'; color: #4caf78; font-weight: 800; flex-shrink: 0; }
+
+        /* ══════════════════════════════════════
+           DEMO SECTION
+        ══════════════════════════════════════ */
+        .demo-section {
+            background: rgba(5, 16, 10, 0.9);
+            backdrop-filter: blur(6px);
+            padding: 40px 24px;
+            position: relative; z-index: 2;
+        }
+        .demo-title {
+            font-size: 16px; font-weight: 700;
+            color: #a8e6bc; margin-bottom: 18px; text-align: center;
+        }
+        .demo-card {
+            background: rgba(26,92,56,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168,230,188,0.12);
+            border-radius: 16px; padding: 14px 18px;
+            margin-bottom: 10px;
+            display: flex; align-items: center; gap: 14px;
+            transition: border-color 0.2s;
+        }
+        .demo-card:hover { border-color: rgba(168,230,188,0.3); }
+        .demo-icon { font-size: 26px; }
+        .demo-role { font-weight: 700; font-size: 14px; color: #e0f5ea; }
+        .demo-creds { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+        .demo-creds b { color: #6abf7e; }
+
+        /* ══════════════════════════════════════
+           CTA SECTION
+        ══════════════════════════════════════ */
+        .cta-section {
+            background: rgba(10, 36, 22, 0.95);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(168,230,188,0.08);
+            padding: 60px 24px; text-align: center;
+            position: relative; z-index: 2;
+        }
+        .cta-title {
+            font-family: 'Fraunces', serif;
+            font-size: 30px; font-weight: 700;
+            margin-bottom: 12px; color: white;
+        }
+        .cta-desc { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 28px; line-height: 1.7; }
+
         .btn-cta {
             display: inline-flex; align-items: center; gap: 10px;
-            background: white; color: #1a5c38; padding: 14px 32px;
+            background: linear-gradient(135deg, #2d8653, #4caf78);
+            color: white; padding: 16px 36px;
             border-radius: 16px; font-weight: 800; font-size: 16px;
             text-decoration: none; transition: all 0.3s;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 28px rgba(45,134,83,0.5);
         }
-        .btn-cta:hover { transform: translateY(-3px); }
-        /* Demo accounts */
-        .demo-section { background: #f0f4f1; padding: 32px 24px; }
-        .demo-title { font-size: 16px; font-weight: 700; color: #1a5c38; margin-bottom: 16px; text-align: center; }
-        .demo-card {
-            background: white; border-radius: 14px; padding: 14px 16px;
-            margin-bottom: 10px; display: flex; align-items: center; gap: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        .btn-cta:hover { transform: translateY(-3px); box-shadow: 0 8px 40px rgba(45,134,83,0.65); }
+
+        .cta-links {
+            display: flex; gap: 12px; justify-content: center;
+            margin-top: 22px; flex-wrap: wrap;
         }
-        .demo-icon { font-size: 24px; }
-        .demo-info { flex: 1; }
-        .demo-role { font-weight: 700; font-size: 14px; color: #1e2a1f; }
-        .demo-creds { font-size: 12px; color: #888; }
+        .btn-cta-ghost {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 11px 22px;
+            background: rgba(26,92,56,0.25);
+            color: #a8e6bc; border-radius: 14px;
+            font-weight: 700; font-size: 14px;
+            text-decoration: none;
+            border: 1.5px solid rgba(168,230,188,0.25);
+            backdrop-filter: blur(8px);
+            transition: all 0.25s;
+        }
+        .btn-cta-ghost:hover {
+            background: rgba(76,175,120,0.3);
+            border-color: rgba(168,230,188,0.5);
+            color: white;
+        }
+        .cta-note { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 12px; }
+
         @media (min-width: 640px) {
             body { max-width: 640px; margin: 0 auto; }
-            .hero-title { font-size: 52px; }
+            #webgl-bg { left: 50%; transform: translateX(-50%); max-width: 640px; }
+            h1.hero-title { font-size: 54px; }
         }
-        @media (max-width: 400px) {
-            .hero-svg-leaves { width: 120px; }
-            .hero-svg-leaf2 { width: 60px; right: 80px; }
+        @media (max-width: 370px) {
+            h1.hero-title { font-size: 36px; }
         }
     </style>
 </head>
 <body>
-    <div class="hero">
-        <nav class="landing-nav">
-            <!-- Brand: Logo + School + S3C gold badge -->
-            <a href="{{ url_for('index') }}" class="brand" title="Beranda">
-                <img src="{{ url_for('static', filename='img/logo_sekolah.png') }}"
-                     style="width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.4));" alt="Logo">
-                <div class="brand-school-info">
-                    <div class="brand-school-name-text">SMA Negeri 2 Wates</div>
-                    <div class="brand-s3c-wrap">
-                        <div class="brand-s3c-badge">
-                            <span class="brand-s3c-letters">S3<em>C</em></span>
-                        </div>
-                        <div class="brand-s3c-sub">
-                            <span class="brand-s3c-sub-main">Smart Canteen</span>
-                            <span class="brand-s3c-sub-small">Sustainable · School</span>
+    <!-- ██ WebGL Canvas (fixed, behind everything) ██ -->
+    <canvas id="webgl-bg" aria-hidden="true"></canvas>
+
+    <div class="page-wrapper">
+        <!-- ════════════ HERO ════════════ -->
+        <div class="hero">
+            <nav class="landing-nav">
+                <a href="{{ url_for('index') }}" class="brand" title="Beranda">
+                    <img src="{{ url_for('static', filename='img/logo_sekolah.png') }}"
+                         style="width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.4));" alt="Logo">
+                    <div class="brand-school-info">
+                        <div class="brand-school-name-text">SMA Negeri 2 Wates</div>
+                        <div class="brand-s3c-wrap">
+                            <div class="brand-s3c-badge">
+                                <span class="brand-s3c-letters">S3<em>C</em></span>
+                            </div>
+                            <div class="brand-s3c-sub">
+                                <span class="brand-s3c-sub-main">Smart Canteen</span>
+                                <span class="brand-s3c-sub-small">Sustainable · School</span>
+                            </div>
                         </div>
                     </div>
+                </a>
+                <a href="{{ url_for('login') }}" class="nav-login">Masuk</a>
+            </nav>
+
+            <div class="hero-content">
+                <div class="hero-school-row">
+                    <a href="{{ url_for('index') }}" title="Beranda">
+                        <img src="{{ url_for('static', filename='img/logo_sekolah.png') }}"
+                             class="hero-school-logo" alt="Logo SMA N 2 Wates">
+                    </a>
+                    <div class="hero-school-text-row">
+                        <div class="hero-school-name">SMA Negeri 2 Wates</div>
+                        <div class="hero-school-motto">Ngrenggo Ciptaning Kusuma Jati</div>
+                    </div>
                 </div>
-            </a>
-            <a href="{{ url_for('login') }}" class="nav-login">Masuk</a>
-        </nav>
-        <div class="hero-content">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-                <a href="{{ url_for('index') }}" style="display:contents;" title="Beranda"><img src="{{ url_for('static', filename='img/logo_sekolah.png') }}" style="width:52px;height:52px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,0.1);padding:2px;cursor:pointer;" alt="Logo SMA N 2 Wates"></a>
+
+                <div class="hero-badge">
+                    <span>🌿</span>
+                    <span>Smart · Sustainable · School · Canteen</span>
+                </div>
+
+                <h1 class="hero-title">
+                    Kantin Sekolah<br>yang <span class="accent">Lebih Cerdas</span><br>&amp; Hijau
+                </h1>
+                <p class="hero-desc">
+                    Platform digital untuk transformasi kantin sekolah menjadi ekosistem berkelanjutan — gizi seimbang, zero waste, dan ekonomi sirkular.
+                </p>
+                <div class="hero-actions">
+                    <a href="{{ url_for('register') }}" class="btn-hero-primary" id="btn-mulai">
+                        <i class="fas fa-seedling"></i> Mulai Sekarang
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn-hero-secondary" id="btn-login">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                </div>
+            </div>
+
+            <!-- Wave -->
+            <div class="wave-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 70" preserveAspectRatio="none" style="height:55px;width:100%;" aria-hidden="true">
+                    <path d="M0,35 C200,70 400,0 600,35 C800,70 1000,10 1200,40 C1320,58 1400,28 1440,35 L1440,70 L0,70 Z"
+                          fill="rgba(10,28,18,0.88)"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- ════════════ FEATURES ════════════ -->
+        <div class="features-section">
+            <div class="section-heading">
+                <div class="section-label">Platform</div>
+                <h2 class="section-title">Fitur Unggulan</h2>
+                <p class="section-sub">Semua yang dibutuhkan untuk kantin modern</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon fi-green">🥗</div>
+                    <div class="feature-name">Menu Sehat</div>
+                    <div class="feature-desc">Transparansi info gizi lengkap dengan label Menu Sehat</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon fi-earth">📱</div>
+                    <div class="feature-name">Pesan Digital</div>
+                    <div class="feature-desc">Order makanan langsung dari smartphone, antri lebih sedikit</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon fi-yellow">🌱</div>
+                    <div class="feature-name">Waste Tracker</div>
+                    <div class="feature-desc">Gamifikasi sisa makanan dengan poin reward untuk siswa</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon fi-blue">♻️</div>
+                    <div class="feature-name">Marketplace</div>
+                    <div class="feature-desc">Jual beli kompos &amp; produk daur ulang dari sisa kantin</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════ ROLES ════════════ -->
+        <div class="roles-section">
+            <div class="section-heading">
+                <div class="section-label">Pengguna</div>
+                <h2 class="section-title">Untuk Siapa?</h2>
+            </div>
+            <div class="role-card role-card-student">
+                <div class="role-emoji">🎓</div>
+                <div class="role-name">Murid / Siswa</div>
+                <div class="role-desc">Pesan makanan sehat, track sisa makanan, kumpulkan poin, dan belajar tentang gizi &amp; lingkungan.</div>
+                <ul class="role-features">
+                    <li>Katalog menu dengan info gizi lengkap</li>
+                    <li>Digital ordering &amp; tracking pesanan</li>
+                    <li>Food Waste Log gamifikasi</li>
+                    <li>Pojok Edukasi interaktif</li>
+                </ul>
+            </div>
+            <div class="role-card role-card-tenant">
+                <div class="role-emoji">🍽️</div>
+                <div class="role-name">Pengelola Kantin / Tenant</div>
+                <div class="role-desc">Kelola menu dengan mudah, pantau pesanan masuk, dan lihat analitik penjualan real-time.</div>
+                <ul class="role-features">
+                    <li>Manajemen menu &amp; harga</li>
+                    <li>Input informasi gizi makanan</li>
+                    <li>Dashboard pesanan masuk</li>
+                    <li>Statistik menu terlaris</li>
+                </ul>
+            </div>
+            <div class="role-card role-card-admin">
+                <div class="role-emoji">⚙️</div>
+                <div class="role-name">Admin Sekolah / Tim S3C</div>
+                <div class="role-desc">Monitor kesehatan kantin dengan data-driven insights, kelola marketplace limbah organik.</div>
+                <ul class="role-features">
+                    <li>Dashboard analitik visual</li>
+                    <li>Tren food waste &amp; konsumsi</li>
+                    <li>Marketplace produk daur ulang</li>
+                    <li>Manajemen konten edukasi</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ════════════ DEMO ACCOUNTS ════════════ -->
+        <div class="demo-section">
+            <div class="demo-title">🔑 Akun Demo</div>
+            <div class="demo-card">
+                <div class="demo-icon">🎓</div>
                 <div>
-                    <div style="font-size:10px;opacity:0.75;letter-spacing:1px;text-transform:uppercase;">SMA Negeri 2 Wates</div>
-                    <div style="font-size:13px;font-weight:700;color:#f6c847;">Ngrenggo Ciptaning Kusuma Jati</div>
+                    <div class="demo-role">Murid</div>
+                    <div class="demo-creds">Username: <b>andi</b> · Password: <b>student123</b></div>
                 </div>
             </div>
-            <div class="hero-badge">
-                <span>🌱</span>
-                <span>Smart · Sustainable · School · Canteen</span>
-            </div>
-            <h1 class="hero-title">
-                Kantin Sekolah<br>yang <span class="accent">Lebih Cerdas</span><br>& Hijau
-            </h1>
-            <p class="hero-desc">
-                Platform digital untuk transformasi kantin sekolah menjadi ekosistem berkelanjutan — gizi seimbang, zero waste, dan ekonomi sirkular.
-            </p>
-            <div class="hero-actions">
-                <a href="{{ url_for('register') }}" class="btn-hero-primary">
-                    <i class="fas fa-seedling"></i> Mulai Sekarang
-                </a>
-                <a href="{{ url_for('login') }}" class="btn-hero-secondary">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </a>
+            <div class="demo-card">
+                <div class="demo-icon">🍽️</div>
+                <div>
+                    <div class="demo-role">Tenant Kantin</div>
+                    <div class="demo-creds">Username: <b>tenant1</b> · Password: <b>tenant123</b></div>
+                </div>
             </div>
         </div>
 
-        <!-- SVG Floating Leaves Decoration -->
-        <svg class="hero-svg-leaves" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" aria-hidden="true">
-            <!-- Leaf 1: large, main -->
-            <path d="M100 225 C55 185, 12 118, 38 50 C58 -5, 148 8, 158 72 C168 136, 100 225, 100 225Z"
-                  fill="rgba(168,230,188,0.22)" stroke="rgba(168,230,188,0.5)" stroke-width="1.5"/>
-            <!-- Leaf 2: behind, offset -->
-            <path d="M100 225 C125 190, 175 145, 162 80 C148 20, 78 28, 68 82 C58 136, 100 225, 100 225Z"
-                  fill="rgba(76,175,120,0.16)" stroke="rgba(76,175,120,0.35)" stroke-width="1.2"/>
-            <!-- Main vein -->
-            <path d="M100 225 C98 170, 88 100, 78 48" stroke="rgba(168,230,188,0.6)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-            <!-- Side veins -->
-            <path d="M90 170 C75 158, 58 150, 48 140" stroke="rgba(168,230,188,0.3)" stroke-width="1" fill="none" stroke-linecap="round"/>
-            <path d="M86 140 C72 128, 55 118, 44 106" stroke="rgba(168,230,188,0.25)" stroke-width="1" fill="none" stroke-linecap="round"/>
-            <path d="M83 110 C70 100, 56 88, 48 78" stroke="rgba(168,230,188,0.2)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
-        </svg>
-
-        <!-- SVG Small Leaf 2 -->
-        <svg class="hero-svg-leaf2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" aria-hidden="true">
-            <path d="M50 115 C28 92, 6 60, 20 26 C30 2, 74 4, 80 36 C86 68, 50 115, 50 115Z"
-                  fill="rgba(168,230,188,0.18)" stroke="rgba(168,230,188,0.4)" stroke-width="1.2"/>
-            <path d="M50 115 C50 85, 44 50, 38 24" stroke="rgba(168,230,188,0.5)" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-        </svg>
-
-        <!-- Orb glow left -->
-        <div class="hero-orb"></div>
-    </div>
-
-    <!-- Wave Divider: Hero → Features -->
-    <div style="background: linear-gradient(160deg, #0d2818 0%, #1a5c38 40%, #2d8653 100%); margin-bottom:-1px;">
-        <svg class="hero-wave-divider" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 70" preserveAspectRatio="none" style="height:55px;" aria-hidden="true">
-            <path d="M0,35 C200,70 400,0 600,35 C800,70 1000,10 1200,40 C1320,58 1400,28 1440,35 L1440,70 L0,70 Z"
-                  fill="#fdfaf6"/>
-        </svg>
-    </div>
-
-    <div class="features-section">
-        <h2 class="features-title">Fitur Unggulan</h2>
-        <p class="features-subtitle">Semua yang dibutuhkan untuk kantin modern</p>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon fi-green">🥗</div>
-                <div class="feature-name">Menu Sehat</div>
-                <div class="feature-desc">Transparansi info gizi lengkap dengan label Menu Sehat</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon fi-earth">📱</div>
-                <div class="feature-name">Pesan Digital</div>
-                <div class="feature-desc">Order makanan langsung dari smartphone, antri lebih sedikit</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon fi-yellow">🌱</div>
-                <div class="feature-name">Waste Tracker</div>
-                <div class="feature-desc">Gamifikasi sisa makanan dengan poin reward untuk siswa</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon fi-blue">♻️</div>
-                <div class="feature-name">Marketplace</div>
-                <div class="feature-desc">Jual beli kompos & produk daur ulang dari sisa kantin</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="roles-section">
-        <h2 class="roles-title">Untuk Siapa?</h2>
-        <div class="role-card role-card-student">
-            <div class="role-emoji">🎓</div>
-            <div class="role-name">Murid / Siswa</div>
-            <div class="role-desc">Pesan makanan sehat, track sisa makanan, kumpulkan poin, dan belajar tentang gizi & lingkungan.</div>
-            <ul class="role-features">
-                <li>Katalog menu dengan info gizi lengkap</li>
-                <li>Digital ordering & tracking pesanan</li>
-                <li>Food Waste Log gamifikasi</li>
-                <li>Pojok Edukasi interaktif</li>
-            </ul>
-        </div>
-        <div class="role-card role-card-tenant">
-            <div class="role-emoji">🍽️</div>
-            <div class="role-name">Pengelola Kantin / Tenant</div>
-            <div class="role-desc">Kelola menu dengan mudah, pantau pesanan masuk, dan lihat analitik penjualan real-time.</div>
-            <ul class="role-features">
-                <li>Manajemen menu & harga</li>
-                <li>Input informasi gizi makanan</li>
-                <li>Dashboard pesanan masuk</li>
-                <li>Statistik menu terlaris</li>
-            </ul>
-        </div>
-        <div class="role-card role-card-admin">
-            <div class="role-emoji">⚙️</div>
-            <div class="role-name">Admin Sekolah / Tim S3C</div>
-            <div class="role-desc">Monitor kesehatan kantin dengan data-driven insights, kelola marketplace limbah organik.</div>
-            <ul class="role-features">
-                <li>Dashboard analitik visual</li>
-                <li>Tren food waste & konsumsi</li>
-                <li>Marketplace produk daur ulang</li>
-                <li>Manajemen konten edukasi</li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="demo-section">
-        <div class="demo-title">🔑 Akun Demo</div>
-        <div class="demo-card">
-            <div class="demo-icon">🎓</div>
-            <div class="demo-info">
-                <div class="demo-role">Murid</div>
-                <div class="demo-creds">Username: <b>andi</b> · Password: <b>student123</b></div>
-            </div>
-        </div>
-        <div class="demo-card">
-            <div class="demo-icon">🍽️</div>
-            <div class="demo-info">
-                <div class="demo-role">Tenant Kantin</div>
-                <div class="demo-creds">Username: <b>tenant1</b> · Password: <b>tenant123</b></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="cta-section">
-        <h2 class="cta-title">Siap Bergabung?</h2>
-        <p class="cta-desc">Jadilah bagian dari gerakan kantin sekolah yang lebih sehat dan berkelanjutan.</p>
-        <a href="{{ url_for('register') }}" class="btn-cta">
-            <i class="fas fa-leaf"></i> Daftar Sekarang — Gratis!
-        </a>
-        <!-- Public access buttons -->
-        <div style="display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap;">
-            <a href="{{ url_for('edu_hub') }}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 20px;background:rgba(255,255,255,0.15);color:white;border-radius:14px;font-weight:700;font-size:14px;text-decoration:none;border:2px solid rgba(255,255,255,0.3);backdrop-filter:blur(8px);">
-                🎬 Sustainable Education Hub
+        <!-- ════════════ CTA ════════════ -->
+        <div class="cta-section">
+            <h2 class="cta-title">Siap Bergabung?</h2>
+            <p class="cta-desc">Jadilah bagian dari gerakan kantin sekolah yang lebih sehat dan berkelanjutan.</p>
+            <a href="{{ url_for('register') }}" class="btn-cta" id="btn-daftar">
+                <i class="fas fa-leaf"></i> Daftar Sekarang — Gratis!
             </a>
-            <a href="{{ url_for('marketplace') }}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 20px;background:rgba(255,255,255,0.15);color:white;border-radius:14px;font-weight:700;font-size:14px;text-decoration:none;border:2px solid rgba(255,255,255,0.3);backdrop-filter:blur(8px);">
-                ♻️ Marketplace Hijau
-            </a>
+            <div class="cta-links">
+                <a href="{{ url_for('edu_hub') }}" class="btn-cta-ghost">🎬 Sustainable Education Hub</a>
+                <a href="{{ url_for('marketplace') }}" class="btn-cta-ghost">♻️ Marketplace Hijau</a>
+            </div>
+            <div class="cta-note">🌍 Akses tanpa login diperlukan</div>
         </div>
-        <div style="font-size:12px;opacity:0.65;margin-top:10px;">🌍 Akses tanpa login diperlukan</div>
-    </div>
+    </div><!-- end .page-wrapper -->
+
+    <!-- Three.js scene -->
+    <script src="{{ url_for('static', filename='js/three_bg.js') }}"></script>
+
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
