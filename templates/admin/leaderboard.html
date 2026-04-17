@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Peringkat Eco Warrior - S3C{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title">🏆 Peringkat Eco Warrior</div>
+    <div class="page-subtitle">Daftar murid dengan kontribusi lingkungan tertinggi</div>
+</div>
+
+<!-- Sorting Chips -->
+<div class="section" style="padding-bottom:0;">
+    <div style="display:flex;gap:10px;">
+        <a href="{{ url_for('admin_leaderboard', sort='points') }}" 
+           class="btn btn-sm {% if sort_by == 'points' %}btn-primary{% else %}btn-secondary{% endif %}"
+           style="border-radius:20px;">
+            <i class="fas fa-star"></i> Urutkan Poin
+        </a>
+        <a href="{{ url_for('admin_leaderboard', sort='kelas') }}" 
+           class="btn btn-sm {% if sort_by == 'kelas' %}btn-primary{% else %}btn-secondary{% endif %}"
+           style="border-radius:20px;">
+            <i class="fas fa-users"></i> Urutkan Kelas
+        </a>
+    </div>
+</div>
+
+<div class="section">
+    {% if rankings %}
+    <div style="display:flex;flex-direction:column;gap:10px;">
+        {% for r in rankings %}
+        <div class="list-item" style="{% if loop.index == 1 %}background:linear-gradient(to right, #fffdf2, #ffffff); border: 1px solid #f6c847;{% endif %}">
+            <div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0;
+                {% if loop.index == 1 %}background:linear-gradient(135deg,#f6c847,#e8a020);color:white;
+                {% elif loop.index == 2 %}background:linear-gradient(135deg,#c0c0c0,#a0a0a0);color:white;
+                {% elif loop.index == 3 %}background:linear-gradient(135deg,#cd7f32,#a06020);color:white;
+                {% else %}background:#f0f4f1;color:#888;{% endif %}">
+                {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}
+            </div>
+            
+            <div style="flex:1;">
+                <div style="font-weight:700;font-size:15px;color:var(--charcoal);">{{ r.name }}</div>
+                <div style="font-size:12px;color:#888;display:flex;align-items:center;gap:4px;">
+                    <i class="fas fa-graduation-cap"></i> {{ r.kelas }}
+                </div>
+            </div>
+            
+            <div style="text-align:right;">
+                <div style="color:var(--forest);font-weight:800;font-size:18px;">{{ r.total_points }}</div>
+                <div style="font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;">Poin</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-users-slash"></i>
+        <p>Belum ada data murid.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div style="padding:0 16px 40px;text-align:center;">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">
+        <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
+    </a>
+</div>
+{% endblock %}

@@ -666,6 +666,27 @@ def admin_analytics():
                            healthy_count=hc,unhealthy_count=uc,tenant_stats=tenant_stats,
                            max_rev=max_rev,waste_counts=waste_data)
 
+@app.route('/admin/leaderboard')
+def admin_leaderboard():
+    if 'user_id' not in session or session['role'] != 'admin': return redirect(url_for('login'))
+    sort_by = request.args.get('sort', 'points') # 'points' or 'kelas'
+    
+    order_clause = 'ORDER BY total_points DESC'
+    if sort_by == 'kelas':
+        order_clause = 'ORDER BY u.kelas ASC, total_points DESC'
+    
+    sql = f'''
+        SELECT u.id, u.name, u.kelas, COALESCE(SUM(wl.points_earned), 0) as total_points
+        FROM users u
+        LEFT JOIN waste_logs wl ON u.id = wl.student_id
+        WHERE u.role = 'student'
+        GROUP BY u.id, u.name, u.kelas
+        {order_clause}
+    '''
+    rankings = query_db(sql)
+    return render_template('admin/leaderboard.html', rankings=rankings, sort_by=sort_by)
+
+
 # admin – manage all menus (across all tenants)
 @app.route('/admin/menus')
 def admin_menus():
