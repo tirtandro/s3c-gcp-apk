@@ -573,8 +573,8 @@
         </div>
     </div><!-- end .page-wrapper -->
 
-    <!-- Three.js scene -->
-    <script src="{{ url_for('static', filename='js/three_bg.js') }}"></script>
+    <!-- Three.js scene with cache busting -->
+    <script src="{{ url_for('static', filename='js/three_bg.js') }}?v={{ range(1, 99999) | random }}"></script>
 
     <script>
         if ('serviceWorker' in navigator) {
