@@ -11,9 +11,17 @@
 
 <!-- Filter by tenant -->
 <div style="padding:12px 16px 0;display:flex;gap:8px;overflow-x:auto;">
-    <a href="{{ url_for('admin_menus') }}" style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;background:#1a5c38;color:white;">Semua</a>
+    <a href="{{ url_for('admin_menus') }}" 
+       style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;
+              {% if not selected_tenant %}background:#1a5c38;color:white;{% else %}background:#e8f5ee;color:#1a5c38;{% endif %}">
+        Semua
+    </a>
     {% for t in tenants %}
-    <a href="{{ url_for('admin_menus') }}?tenant={{ t.id }}" style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;background:#e8f5ee;color:#1a5c38;">{{ t.tenant_name or t.name }}</a>
+    <a href="{{ url_for('admin_menus') }}?tenant={{ t.id }}" 
+       style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;
+              {% if selected_tenant == t.id|string %}background:#1a5c38;color:white;{% else %}background:#e8f5ee;color:#1a5c38;{% endif %}">
+        {{ t.tenant_name or t.name }}
+    </a>
     {% endfor %}
 </div>
 

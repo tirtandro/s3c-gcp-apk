@@ -155,7 +155,7 @@ def init_db():
     
     # We use a wrapper to handle the schema creation
     queries = [
-        f"CREATE TABLE IF NOT EXISTS users (id {auto_inc if DATABASE_URL else 'INTEGER PRIMARY KEY AUTOINCREMENT'}, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password TEXT NOT NULL, role TEXT NOT NULL, kelas TEXT, tenant_name TEXT, photo TEXT, created_at TEXT DEFAULT {now_func})",
+        f"CREATE TABLE IF NOT EXISTS users (id {auto_inc if DATABASE_URL else 'INTEGER PRIMARY KEY AUTOINCREMENT'}, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password TEXT NOT NULL, role TEXT NOT NULL, kelas TEXT, tenant_name TEXT, photo TEXT, weight REAL DEFAULT 0, height REAL DEFAULT 0, age INTEGER DEFAULT 16, gender TEXT DEFAULT 'L', created_at TEXT DEFAULT {now_func})",
         f"CREATE TABLE IF NOT EXISTS menus (id {auto_inc if DATABASE_URL else 'INTEGER PRIMARY KEY AUTOINCREMENT'}, tenant_id INTEGER NOT NULL, name TEXT NOT NULL, description TEXT, price REAL NOT NULL, category TEXT, calories REAL DEFAULT 0, protein REAL DEFAULT 0, carbs REAL DEFAULT 0, fat REAL DEFAULT 0, fiber REAL DEFAULT 0, is_healthy INTEGER DEFAULT 0, is_available INTEGER DEFAULT 1, image_emoji TEXT DEFAULT '🍱', image_file TEXT, created_at TEXT DEFAULT {now_func})",
         f"CREATE TABLE IF NOT EXISTS orders (id {auto_inc if DATABASE_URL else 'INTEGER PRIMARY KEY AUTOINCREMENT'}, student_id INTEGER NOT NULL, tenant_id INTEGER NOT NULL, status TEXT DEFAULT 'pending', total_price REAL DEFAULT 0, notes TEXT, created_at TEXT DEFAULT {now_func})",
         f"CREATE TABLE IF NOT EXISTS order_items (id {auto_inc if DATABASE_URL else 'INTEGER PRIMARY KEY AUTOINCREMENT'}, order_id INTEGER NOT NULL, menu_id INTEGER NOT NULL, quantity INTEGER DEFAULT 1, subtotal REAL DEFAULT 0)",
@@ -252,8 +252,22 @@ def init_db():
 
 def migrate_db():
     """Safely add new columns to existing database without losing data."""
+    db = get_db()
     if DATABASE_URL:
-        # Migration logic skipped or simplified for Cloud SQL fresh installs
+        try:
+            cur = db.cursor()
+            cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name='users';")
+            cols = [r[0] for r in cur.fetchall()]
+            if 'weight' not in cols:
+                cur.execute("ALTER TABLE users ADD COLUMN weight REAL DEFAULT 0")
+                cur.execute("ALTER TABLE users ADD COLUMN height REAL DEFAULT 0")
+                cur.execute("ALTER TABLE users ADD COLUMN age INTEGER DEFAULT 16")
+                cur.execute("ALTER TABLE users ADD COLUMN gender TEXT DEFAULT 'L'")
+            db.commit()
+            cur.close()
+        except Exception as e:
+            db.rollback()
+            print("Migration PG error:", e)
         return
     
     db = get_db()
@@ -270,6 +284,11 @@ def migrate_db():
         cols = [row[1] for row in db.execute("PRAGMA table_info(users)").fetchall()]
         if 'photo' not in cols:
             db.execute("ALTER TABLE users ADD COLUMN photo TEXT")
+        if 'weight' not in cols:
+            db.execute("ALTER TABLE users ADD COLUMN weight REAL DEFAULT 0")
+            db.execute("ALTER TABLE users ADD COLUMN height REAL DEFAULT 0")
+            db.execute("ALTER TABLE users ADD COLUMN age INTEGER DEFAULT 16")
+            db.execute("ALTER TABLE users ADD COLUMN gender TEXT DEFAULT 'L'")
             
         # Create new tables if missing
         db.executescript("""
@@ -330,9 +349,14 @@ def register():
         if query_db('SELECT id FROM users WHERE username=?',[request.form['username']],one=True):
             flash('Username sudah digunakan.','danger')
             return render_template('auth/register.html')
-        query_db('INSERT INTO users (name,username,password,role,kelas,tenant_name) VALUES (?,?,?,?,?,?)',
+        w = request.form.get('weight', 0, type=float)
+        h = request.form.get('height', 0, type=float)
+        a = request.form.get('age', 16, type=int)
+        g = request.form.get('gender', 'L')
+        query_db('INSERT INTO users (name,username,password,role,kelas,tenant_name,weight,height,age,gender) VALUES (?,?,?,?,?,?,?,?,?,?)',
             [request.form['name'],request.form['username'],hash_pw(request.form['password']),
-             request.form['role'],request.form.get('kelas',''),request.form.get('tenant_name','')],commit=True)
+             request.form['role'],request.form.get('kelas',''),request.form.get('tenant_name',''),
+             w, h, a, g],commit=True)
         flash('Registrasi berhasil! Silakan login.','success')
         return redirect(url_for('login'))
     return render_template('auth/register.html')
@@ -343,6 +367,49 @@ def logout():
     return redirect(url_for('index'))
 
 # ── DASHBOARD ────────────────────────────────────────────────────────────────
+
+def get_user_quests(user):
+    w = user.get('weight') or 0
+    h = user.get('height') or 0
+    a = user.get('age') or 16
+    g = user.get('gender') or 'L'
+    
+    t_cal, t_pro, t_carb, t_fat, t_fiber = 600, 20, 80, 10, 8
+    bmi_status, bmi_val = '-', 0
+    
+    if w > 0 and h > 0:
+        hm = h / 100.0
+        bmi_val = w / (hm * hm)
+        if bmi_val < 18.5: bmi_status = 'Kurus'
+        elif bmi_val < 25: bmi_status = 'Normal'
+        elif bmi_val < 30: bmi_status = 'Gemuk'
+        else: bmi_status = 'Obesitas'
+        
+        bmr = (10 * w) + (6.25 * h) - (5 * a)
+        bmr += 5 if g.upper() == 'L' else -161
+        
+        tdee = bmr * 1.375 # active teen assumption
+        t_cal = round(tdee / 3)
+        t_pro = round((tdee * 0.15) / 4 / 3)
+        t_carb = round((tdee * 0.55) / 4 / 3)
+        t_fat = round((tdee * 0.30) / 9 / 3)
+        t_fiber = round((tdee / 1000) * 14 / 3)
+
+    return {
+        'cal': t_cal, 'pro': t_pro, 'carb': t_carb, 'fat': t_fat, 'fiber': t_fiber,
+        'bmi': round(bmi_val, 1) if bmi_val > 0 else 0, 'status': bmi_status
+    }
+
+@app.route('/update_profile', methods=['POST'])
+def update_profile():
+    if 'user_id' not in session: return redirect(url_for('login'))
+    w = request.form.get('weight', 0, type=float)
+    h = request.form.get('height', 0, type=float)
+    a = request.form.get('age', 16, type=int)
+    g = request.form.get('gender', 'L')
+    query_db('UPDATE users SET weight=?, height=?, age=?, gender=? WHERE id=?', (w, h, a, g, session['user_id']), commit=True)
+    flash('Profil Gizi berhasil diperbarui! Target harianmu telah disesuaikan.', 'success')
+    return redirect(url_for('dashboard'))
 
 @app.route('/dashboard')
 def dashboard():
@@ -356,8 +423,12 @@ def dashboard():
             JOIN users u ON o.tenant_id=u.id WHERE o.student_id=? ORDER BY o.created_at DESC LIMIT 3''',[user['id']])
         recent_waste  = query_db('SELECT * FROM waste_logs WHERE student_id=? ORDER BY created_at DESC LIMIT 5',[user['id']])
         menus = query_db('SELECT m.*,u.tenant_name FROM menus m JOIN users u ON m.tenant_id=u.id WHERE m.is_available=1 AND m.is_healthy=1 LIMIT 6')
+
+        # BMI & Nutritional Quests
+        quests = get_user_quests(user)
+
         return render_template('student/dashboard.html',user=user,points=points,
-                               recent_orders=recent_orders,recent_waste=recent_waste,menus=menus)
+                               recent_orders=recent_orders,recent_waste=recent_waste,menus=menus,quests=quests)
 
     elif role == 'tenant':
         mc  = query_db('SELECT COUNT(*) as c FROM menus WHERE tenant_id=?',[user['id']],one=True)['c']
@@ -429,7 +500,12 @@ def order():
     for t in tenants:
         ms = query_db('SELECT * FROM menus WHERE tenant_id=? AND is_available=1',[t['id']])
         if ms: menus_by_tenant.append((dict(t), list(ms)))
-    return render_template('student/order.html', menus_by_tenant=menus_by_tenant)
+        
+    # Get Quests
+    user = query_db('SELECT * FROM users WHERE id=?',[session['user_id']],one=True)
+    quests = get_user_quests(user)
+    
+    return render_template('student/order.html', menus_by_tenant=menus_by_tenant, quests=quests, user=user)
 
 @app.route('/my-orders')
 def my_orders():
@@ -594,9 +670,17 @@ def admin_analytics():
 @app.route('/admin/menus')
 def admin_menus():
     if 'user_id' not in session or session['role'] != 'admin': return redirect(url_for('login'))
-    menus   = query_db('SELECT m.*,u.tenant_name,u.name as tname FROM menus m JOIN users u ON m.tenant_id=u.id ORDER BY u.tenant_name,m.name')
+    t_id = request.args.get('tenant')
+    sql = 'SELECT m.*,u.tenant_name,u.name as tname FROM menus m JOIN users u ON m.tenant_id=u.id'
+    args = []
+    if t_id:
+        sql += ' WHERE m.tenant_id = ?'
+        args.append(t_id)
+    sql += ' ORDER BY u.tenant_name, m.name'
+    
+    menus   = query_db(sql, args)
     tenants = query_db("SELECT * FROM users WHERE role='tenant' ORDER BY tenant_name")
-    return render_template('admin/menus.html', menus=menus, tenants=tenants)
+    return render_template('admin/menus.html', menus=menus, tenants=tenants, selected_tenant=t_id)
 
 @app.route('/admin/menu/add', methods=['GET','POST'])
 def admin_add_menu():
