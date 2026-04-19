@@ -30,12 +30,14 @@ Platform digital untuk transformasi kantin sekolah menjadi ekosistem yang lebih 
 - **Dashboard** — Poin eco-warrior, level gamifikasi, ringkasan aktivitas.
 - **Katalog Menu** — Filter kategori & pencarian, informasi gizi lengkap.
 - **Digital Order** — Keranjang belanja interaktif, multi-tenant.
+- **Notifikasi Pintar** — Notifikasi push & in-app update status pesanan yang interaktif.
 - **PWA Install** — Bisa diinstal langsung dari Chrome Android.
 
 ### 🍽️ Role Tenant (Pengelola Kantin)
 - **Dashboard** — Pendapatan harian dan pesanan masuk.
 - **Manajemen Menu** — CRUD menu dengan input nilai gizi detail.
 - **Manajemen Pesanan** — Update status pesanan secara real-time.
+- **Notifikasi Real-time** — Pemberitahuan instan saat ada pesanan baru masuk.
 
 ### ⚙️ Role Admin (Tim S3C)
 - **Dashboard** — Statistik global dan analitik tren kantin.
