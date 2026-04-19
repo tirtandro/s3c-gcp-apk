@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, g, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, session, flash, g, send_from_directory, jsonify
 import sqlite3, json, hashlib, os, re, uuid, base64
 from datetime import datetime, date, timedelta, timezone, time as dtime
 from dotenv import load_dotenv
@@ -162,7 +162,8 @@ def init_db():
         f"CREATE TABLE IF NOT EXISTS waste_logs (id {auto_inc if DATABASE_URL else 'INTEGER PRIMARY KEY AUTOINCREMENT'}, student_id INTEGER NOT NULL, menu_id INTEGER, waste_level TEXT, waste_reason TEXT, points_earned INTEGER DEFAULT 0, log_date TEXT DEFAULT {date_func}, created_at TEXT DEFAULT {now_func})",
         f"CREATE TABLE IF NOT EXISTS education_posts (id {auto_inc if DATABASE_URL else 'INTEGER PRIMARY KEY AUTOINCREMENT'}, title TEXT NOT NULL, content TEXT NOT NULL, category TEXT, image_emoji TEXT DEFAULT '📚', author_id INTEGER, created_at TEXT DEFAULT {now_func})",
         f"CREATE TABLE IF NOT EXISTS marketplace_items (id {auto_inc if DATABASE_URL else 'INTEGER PRIMARY KEY AUTOINCREMENT'}, name TEXT NOT NULL, description TEXT, category TEXT, price REAL DEFAULT 0, unit TEXT DEFAULT 'pcs', stock INTEGER DEFAULT 0, image_emoji TEXT DEFAULT '♻️', image_file TEXT, seller_id INTEGER, is_available INTEGER DEFAULT 1, created_at TEXT DEFAULT {now_func})",
-        f"CREATE TABLE IF NOT EXISTS edu_videos (id {auto_inc if DATABASE_URL else 'INTEGER PRIMARY KEY AUTOINCREMENT'}, title TEXT NOT NULL, youtube_url TEXT NOT NULL, description TEXT, category TEXT DEFAULT 'umum', uploader_id INTEGER, is_published INTEGER DEFAULT 1, created_at TEXT DEFAULT {now_func})"
+        f"CREATE TABLE IF NOT EXISTS edu_videos (id {auto_inc if DATABASE_URL else 'INTEGER PRIMARY KEY AUTOINCREMENT'}, title TEXT NOT NULL, youtube_url TEXT NOT NULL, description TEXT, category TEXT DEFAULT 'umum', uploader_id INTEGER, is_published INTEGER DEFAULT 1, created_at TEXT DEFAULT {now_func})",
+        f"CREATE TABLE IF NOT EXISTS notifications (id {auto_inc if DATABASE_URL else 'INTEGER PRIMARY KEY AUTOINCREMENT'}, user_id INTEGER NOT NULL, title TEXT NOT NULL, message TEXT NOT NULL, action_url TEXT, is_read INTEGER DEFAULT 0, created_at TEXT DEFAULT {now_func})"
     ]
 
     if DATABASE_URL:
@@ -250,6 +251,15 @@ def init_db():
     print("✅ Database seeded!")
 
 
+def add_notification(user_id, title, message, action_url=None):
+    """Add a notification for a specific user."""
+    try:
+        query_db('INSERT INTO notifications (user_id, title, message, action_url) VALUES (?,?,?,?)',
+                 [user_id, title, message, action_url], commit=True)
+    except Exception as e:
+        print(f"Notification error: {e}")
+
+
 def migrate_db():
     """Safely add new columns to existing database without losing data."""
     db = get_db()
@@ -263,6 +273,12 @@ def migrate_db():
                 cur.execute("ALTER TABLE users ADD COLUMN height REAL DEFAULT 0")
                 cur.execute("ALTER TABLE users ADD COLUMN age INTEGER DEFAULT 16")
                 cur.execute("ALTER TABLE users ADD COLUMN gender TEXT DEFAULT 'L'")
+                
+            cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name='notifications';")
+            cols_notif = [r[0] for r in cur.fetchall()]
+            if 'action_url' not in cols_notif:
+                cur.execute("ALTER TABLE notifications ADD COLUMN action_url TEXT")
+                
             db.commit()
             cur.close()
         except Exception as e:
@@ -289,6 +305,10 @@ def migrate_db():
             db.execute("ALTER TABLE users ADD COLUMN height REAL DEFAULT 0")
             db.execute("ALTER TABLE users ADD COLUMN age INTEGER DEFAULT 16")
             db.execute("ALTER TABLE users ADD COLUMN gender TEXT DEFAULT 'L'")
+            
+        cols_notif = [row[1] for row in db.execute("PRAGMA table_info(notifications)").fetchall()]
+        if 'action_url' not in cols_notif:
+            db.execute("ALTER TABLE notifications ADD COLUMN action_url TEXT")
             
         # Create new tables if missing
         db.executescript("""
@@ -492,6 +512,9 @@ def order():
             for i in items:
                 query_db('INSERT INTO order_items (order_id,menu_id,quantity,subtotal) VALUES (?,?,?,?)',
                          [oid,i['menu']['id'],i['qty'],i['menu']['price']*i['qty']],commit=True)
+            # ── Notifikasi ke Tenant ──
+            student_name = session.get('name', 'Murid')
+            add_notification(tid, "Pesanan Baru Masuk!", f"{student_name} telah membuat pesanan baru (Total: Rp {int(total):,})".replace(',', '.'), url_for('tenant_orders'))
         flash('Pesanan berhasil dikirim! 🎉','success')
         return redirect(url_for('my_orders'))
     # Group menus by tenant for display
@@ -633,8 +656,23 @@ def tenant_orders():
 @app.route('/tenant/order/update/<int:order_id>', methods=['POST'])
 def update_order_status(order_id):
     if 'user_id' not in session or session['role'] != 'tenant': return redirect(url_for('login'))
+    new_status = request.form['status']
     query_db('UPDATE orders SET status=? WHERE id=? AND tenant_id=?',
-             [request.form['status'],order_id,session['user_id']],commit=True)
+             [new_status, order_id, session['user_id']], commit=True)
+    # ── Notifikasi ke Murid ──
+    order_info = query_db('SELECT * FROM orders WHERE id=?', [order_id], one=True)
+    if order_info:
+        tenant = query_db('SELECT * FROM users WHERE id=?', [session['user_id']], one=True)
+        tenant_label = tenant['tenant_name'] or tenant['name'] if tenant else 'Kantin'
+        status_labels = {'processing': '⏳ Sedang Diproses', 'ready': '✅ Siap Diambil', 'done': '🎉 Selesai'}
+        status_text = status_labels.get(new_status, new_status)
+        if new_status in ('processing', 'ready', 'done'):
+            add_notification(
+                order_info['student_id'],
+                f'📋 Update Pesanan',
+                f'Pesanan #{order_id} dari {tenant_label}: {status_text}',
+                url_for('my_orders')
+            )
     return redirect(url_for('tenant_orders'))
 
 # ── ADMIN – full management of everything ────────────────────────────────────
@@ -936,6 +974,28 @@ def admin_delete_video(video_id):
     if 'user_id' not in session or session['role'] != 'admin': return redirect(url_for('login'))
     query_db('DELETE FROM edu_videos WHERE id=?',[video_id],commit=True)
     flash('Video dihapus.','info'); return redirect(url_for('admin_videos'))
+
+
+# ── API Endpoint Notifikasi ───────────────────────────────────────────────────
+
+@app.route('/api/notifications/check')
+def check_notifications():
+    """Mengembalikan notifikasi yang belum dibaca dan menandainya sebagai sudah dibaca."""
+    if 'user_id' not in session:
+        return jsonify({'notifications': []})
+    
+    notifs = query_db('SELECT id, title, message, action_url FROM notifications WHERE user_id=? AND is_read=0 ORDER BY created_at ASC', [session['user_id']])
+    
+    if notifs:
+        # Tandai sebagai sudah dibaca
+        notif_ids = [n['id'] for n in notifs]
+        placeholders = ','.join(['?'] * len(notif_ids))
+        query_db(f'UPDATE notifications SET is_read=1 WHERE id IN ({placeholders})', notif_ids, commit=True)
+        
+    return jsonify({
+        'notifications': [{'title': n['title'], 'message': n['message'], 'url': n['action_url']} for n in notifs]
+    })
+
 
 # ── Init DB & run ─────────────────────────────────────────────────────────────
 
